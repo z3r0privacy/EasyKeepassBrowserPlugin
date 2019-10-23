@@ -24,5 +24,10 @@
         "default_icon": "icon_closed.svg",
         "default_title": "Easy Keepass Passwords",
         "default_popup": "addonWindow.html"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id":"{eb1edb6d-64b2-4c6e-8934-becabf9d8e35}"
+        }
     }
 }
