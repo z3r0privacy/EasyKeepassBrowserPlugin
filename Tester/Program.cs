@@ -12,7 +12,7 @@ namespace Tester
     {
         static void Main(string[] args)
         {
-            var ebp = new HTTPHandler(null);
+            var ebp = new HTTPHandler(null, null);
             ebp.Start();
             Console.ReadKey();
             ebp.Stop();

@@ -17,9 +17,12 @@ namespace EasyBrowserPlugin
     {
         private IPluginHost _pHost;
         private HttpListener _server;
+        private EasyBrowserPluginExt _plugin;
+        private static readonly object workerLock = new object();
 
-        public HTTPHandler(IPluginHost pHost)
+        public HTTPHandler(IPluginHost pHost, EasyBrowserPluginExt plugin)
         {
+            _plugin = plugin;
             _pHost = pHost;
             _server = new HttpListener();
             _server.Prefixes.Add("http://localhost:34567/");
@@ -43,49 +46,66 @@ namespace EasyBrowserPlugin
                 var ctx = _server.EndGetContext(ar);
                 _server.BeginGetContext(EndGetContext, null);
 
-                if (ctx.Request.HttpMethod != "POST")
+                lock (workerLock)
                 {
-                    ctx.Response.StatusCode = 405;
-                    ctx.Response.OutputStream.Close();
-                    return;
+                    if (ctx.Request.HttpMethod != "POST")
+                    {
+                        ctx.Response.StatusCode = 405;
+                        ctx.Response.OutputStream.Close();
+                        return;
+                    }
+
+                    if (ctx.Request.RawUrl != "/")
+                    {
+                        ctx.Response.StatusCode = 400;
+                        ctx.Response.OutputStream.Close();
+                        return;
+                    }
+
+                    EncryptedMessage encReqData = null;
+                    RequestData reqData = null;
+                    try
+                    {
+                        var rawData = new StreamReader(ctx.Request.InputStream).ReadToEnd();
+                        Debug.WriteLine($"Received: {rawData}");
+                        encReqData = JsonConvert.DeserializeObject<EncryptedMessage>(rawData);
+                    }
+                    catch (Exception)
+                    {
+                        ctx.Response.StatusCode = 400;
+                        ctx.Response.OutputStream.Close();
+                        return;
+                    }
+
+                    if (encReqData == null || string.IsNullOrEmpty(encReqData.IV) || string.IsNullOrEmpty(encReqData.Message))
+                    {
+                        ctx.Response.StatusCode = 400;
+                        ctx.Response.OutputStream.Close();
+                        return;
+                    }
+
+                    reqData = CryptoHelper.DecryptMessage(encReqData, _plugin.CryptoKey);
+
+                    if (reqData == null || string.IsNullOrEmpty(reqData.Url))
+                    {
+                        ctx.Response.StatusCode = 400;
+                        ctx.Response.OutputStream.Close();
+                        return;
+                    }
+
+                    var responseData = FindCredentials(reqData.Url);
+
+                    var encResponseData = CryptoHelper.EncryptMessage(responseData, _plugin.CryptoKey);
+
+                    var response = JsonConvert.SerializeObject(encResponseData);
+                    var writer = new StreamWriter(ctx.Response.OutputStream);
+                    writer.Write(response);
+                    Debug.WriteLine($"Returned: {response}");
+
+                    ctx.Response.StatusCode = 200;
+                    writer.Close();
+                    writer.Dispose();
                 }
-
-                if (ctx.Request.RawUrl != "/")
-                {
-                    ctx.Response.StatusCode = 400;
-                    ctx.Response.OutputStream.Close();
-                    return;
-                }
-
-                RequestData reqData = null;
-                try
-                {
-                    var rawData = new StreamReader(ctx.Request.InputStream).ReadToEnd();
-                    reqData = JsonConvert.DeserializeObject<RequestData>(rawData);
-                }
-                catch (Exception)
-                {
-                    ctx.Response.StatusCode = 400;
-                    ctx.Response.OutputStream.Close();
-                    return;
-                }
-
-                if (reqData == null || string.IsNullOrEmpty(reqData.Url))
-                {
-                    ctx.Response.StatusCode = 400;
-                    ctx.Response.OutputStream.Close();
-                    return;
-                }
-
-                var responseData = FindCredentials(reqData.Url);
-
-                var response = JsonConvert.SerializeObject(responseData);
-                var writer = new StreamWriter(ctx.Response.OutputStream);
-                writer.Write(response);
-
-                ctx.Response.StatusCode = 200;
-                writer.Close();
-                writer.Dispose();
             }
             catch (HttpListenerException)
             {
@@ -101,6 +121,11 @@ namespace EasyBrowserPlugin
             };
 
             if (_pHost == null)
+            {
+                return notFound;
+            }
+
+            if (_plugin.CryptoKey == null)
             {
                 return notFound;
             }
@@ -145,6 +170,9 @@ namespace EasyBrowserPlugin
             {
                 e = results.First();
             }
+
+            e.Touch(false);
+
             return new ResponseData
             {
                 FoundData = true,

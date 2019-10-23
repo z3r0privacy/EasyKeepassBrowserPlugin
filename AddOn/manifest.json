@@ -12,11 +12,12 @@
         {
             "matches": ["<all_urls>"],
             "run_at": "document_end",
-            "js": ["helper.js", "security.js", "ekbp.js"]
+            "js": ["helper.js", "base64js.min.js", "security.js", "ekbp.js"]
         }
     ],
     "permissions": [
         "<all_urls>",
+        "storage",
         "activeTab",
         "webRequest"
     ],

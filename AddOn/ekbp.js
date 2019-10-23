@@ -1,26 +1,27 @@
 var pluginAbc123 = {
 
-    observerStarted : false,
-    obs : null,
+    observerStarted: false,
+    obs: null,
+    cryptoKey: null,
 
-    GetPwdFields : function(doc) {
+    GetPwdFields: function (doc) {
         var ary = [];
         var inputs = doc.getElementsByTagName("input");
-        for (var i=0; i<inputs.length; i++) {
+        for (var i = 0; i < inputs.length; i++) {
             if (inputs[i].type.toLowerCase() === "password") {
-            ary.push(inputs[i]);
+                ary.push(inputs[i]);
             }
         }
         if (ary.length === 0) {
             inputs = this.SearchIframes(doc);
-            for (var i=0; i<inputs.length; i++) {
+            for (var i = 0; i < inputs.length; i++) {
                 ary.push(inputs[i]);
             }
         }
         return ary;
     },
 
-    SelectPwdField : function (fields) {
+    SelectPwdField: function (fields) {
         for (var i = 0; i < fields.length; i++) {
             if (IsVisible(fields[i])) {
                 if (IsNotPartOfRegisterForm(fields[i])) {
@@ -28,11 +29,11 @@ var pluginAbc123 = {
                 }
             }
         }
-        
+
         return null;
     },
 
-    GetUserField : function (pwdField) {
+    GetUserField: function (pwdField) {
         var el = pwdField.parentElement;
         while (el !== null && el.tagName !== "FORM") {
             el = el.parentElement;
@@ -58,38 +59,42 @@ var pluginAbc123 = {
         return userFields[0];
     },
 
-    GetLoginData : function(site) {
+    GetLoginData: async function (site) {
         console.log(site);
 
         var http = new XMLHttpRequest();
         var url = 'http://localhost:34567/';
         var params = JSON.stringify({
-            Url : site
+            Url: site
         });
+        const sendData = await Encrypt(params, this.cryptoKey);
         http.timeout = 500;
         http.open('POST', url, false);
         http.setRequestHeader('Content-type', 'text/json');
-        http.send(params);
-        
+        http.send(JSON.stringify(sendData));
+
         if (http.status === 0) {
             //alert('error http');
-            return {"FoundData":false,"Username":"","Password":""};
+            return { "FoundData": false, "Username": "", "Password": "" };
         }
 
-        return JSON.parse(http.responseText);
+        const encResponse = JSON.parse(http.responseText);
+        const response = await Decrypt(encResponse.Message, this.cryptoKey, encResponse.IV);
+
+        return JSON.parse(response);
     },
 
-    IsSameSource : function(url) {
+    IsSameSource: function (url) {
         var baseUrl = window.location.href;
-        var baseUrlL = baseUrl.indexOf('/', baseUrl.indexOf('/')+2);
-        baseUrl = baseUrl.substring(0, baseUrlL+1);
+        var baseUrlL = baseUrl.indexOf('/', baseUrl.indexOf('/') + 2);
+        baseUrl = baseUrl.substring(0, baseUrlL + 1);
         return url.startsWith(baseUrl);
     },
 
-    SearchIframes : function(doc) {
+    SearchIframes: function (doc) {
         var iframes = document.getRootNode().getElementsByTagName("iframe");
         var pwdFields = [];
-        
+
         for (var i = 0; i < iframes.length; i++) {
             if (!this.IsSameSource(iframes[i].getAttribute("src"))) {
                 continue;
@@ -103,7 +108,7 @@ var pluginAbc123 = {
         return pwdFields;
     },
 
-    ObsCallback : function(list, obs, plgin){
+    ObsCallback: function (list, obs, plgin) {
         for (var j = 0; j < list.length; j++) {
             var newIframes = list[j].addedNodes[0].getElementsByTagName("iframe");
             for (var y = 0; y < newIframes.length; y++) {
@@ -119,7 +124,7 @@ var pluginAbc123 = {
         }
     },
 
-    FindAndFillLoginFields : function (doc) {
+    FindAndFillLoginFields: function (doc) {
         if (doc === null) {
             doc = document.getRootNode();
         }
@@ -138,43 +143,46 @@ var pluginAbc123 = {
                     subtree: true
                 };
                 var _this = this;
-                this.obs = new MutationObserver(function(list, obs) {
+                this.obs = new MutationObserver(function (list, obs) {
                     _this.ObsCallback(list, obs, _this);
                 });
                 this.obs.observe(document.getRootNode(), conf);
             }
             return;
         }
-        
-        var userField = this.GetUserField(pwd);
-        var data = this.GetLoginData(window.location.href);
 
-        if (data.FoundData === false) {
-            return;
-        }
-        if (this.observerStarted === true) {
-            this.obs.disconnect();
-        }
-        
-        //pwd.select();
-        //pwd.value = data.Password;
-        setTimeout(function() {setNativeValue(pwd, data.Password);}, 1000);
-        if (userField !== undefined) {
-            if (userField.hasAttribute("autocomplete")) {
-                userField.removeAttribute("autocomplete");
-            }
-            //userField.setAttribute('value', data.Username);
-            //userField.select();
-            //userField.value = data.Username;
-            setTimeout(function() {setNativeValue(userField, data.Username);}, 1000);
-        }
+        var userField = this.GetUserField(pwd);
+        this.GetLoginData(window.location.href)
+            .then(data => {
+                if (data.FoundData === false) {
+                    return;
+                }
+                if (this.observerStarted === true) {
+                    this.obs.disconnect();
+                }
+
+                //pwd.select();
+                //pwd.value = data.Password;
+                setTimeout(function () { setNativeValue(pwd, data.Password); }, 0);
+                if (userField !== undefined) {
+                    if (userField.hasAttribute("autocomplete")) {
+                        userField.removeAttribute("autocomplete");
+                    }
+                    //userField.setAttribute('value', data.Username);
+                    //userField.select();
+                    //userField.value = data.Username;
+                    setTimeout(function () { setNativeValue(userField, data.Username); }, 0);
+                }
+            });
     }
 };
 setTimeout(() => {
-    console.log("debug");
     pluginAbc123.FindAndFillLoginFields(null);
 }, (1000));
-    
+
+console.log("debug");
+InitSecurity("1234").then(ck => { pluginAbc123.cryptoKey = ck; }).catch(err => console.log(err));
+
 
 function setNativeValue(element, value) {
     const { set: valueSetter } = Object.getOwnPropertyDescriptor(element, 'value') || {}
@@ -190,18 +198,3 @@ function setNativeValue(element, value) {
     }
     element.dispatchEvent(new Event('change', { bubbles: true }));
 }
-
-function setReactInputValue(input, value) {
-    const previousValue = input.value;
-    
-    // eslint-disable-next-line no-param-reassign
-    input.value = value;
-    
-    const tracker = input._valueTracker;
-    if (tracker) {
-        tracker.setValue(previousValue);
-    }
-    
-    // 'change' instead of 'input', see https://github.com/facebook/react/issues/11488#issuecomment-381590324
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    }
