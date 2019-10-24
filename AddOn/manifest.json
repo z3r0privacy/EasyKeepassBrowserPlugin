@@ -5,14 +5,14 @@
     "description": "A simple Plugin trying to automatically fill in your passwords",
     "author": "Michael Roth",
     "icons": {
-        "48": "icon_closed.svg",
-        "96": "icon_closed.svg"
+        "48": "res/icon_closed.svg",
+        "96": "res/icon_closed.svg"
     },
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
             "run_at": "document_end",
-            "js": ["helper.js", "base64js.min.js", "security.js", "ekbp.js"]
+            "js": ["shared/const.js", "content/helper.js", "shared/base64js.min.js", "shared/security.js", "content/ekbp.js"]
         }
     ],
     "permissions": [
@@ -22,13 +22,19 @@
         "webRequest"
     ],
     "browser_action":{
-        "default_icon": "icon_closed.svg",
+        "default_icon": "res/icon_closed.svg",
         "default_title": "Easy Keepass Passwords",
-        "default_popup": "addonWindow.html"
+        "default_popup": "popup/addonWindow.html"
     },
     "browser_specific_settings": {
         "gecko": {
             "id":"{eb1edb6d-64b2-4c6e-8934-becabf9d8e35}"
         }
+    },
+    "web_accessible_resources": [
+        
+    ],
+    "background": {
+        "scripts": ["shared/const.js", "shared/base64js.min.js", "shared/security.js", "bg/background.js"]
     }
 }

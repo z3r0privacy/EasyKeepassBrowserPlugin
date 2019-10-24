@@ -2,7 +2,7 @@ var pluginAbc123 = {
 
     observerStarted: false,
     obs: null,
-    cryptoKey: null,
+    //cryptoKey: null,
 
     GetPwdFields: function (doc) {
         var ary = [];
@@ -62,12 +62,19 @@ var pluginAbc123 = {
     GetLoginData: async function (site) {
         console.log(site);
 
+        var cryptoKey64 = await browser.runtime.sendMessage({action: actionGetKey});
+        if (cryptoKey64 == null) {
+            return { "FoundData": false, "Username": "", "Password": "" };
+        }
+
+        var cryptoKey = await Base64ToKey(cryptoKey64);
+
         var http = new XMLHttpRequest();
         var url = 'http://localhost:34567/';
         var params = JSON.stringify({
             Url: site
         });
-        const sendData = await Encrypt(params, this.cryptoKey);
+        const sendData = await Encrypt(params, cryptoKey);
         http.timeout = 500;
         http.open('POST', url, false);
         http.setRequestHeader('Content-type', 'text/json');
@@ -79,7 +86,7 @@ var pluginAbc123 = {
         }
 
         const encResponse = JSON.parse(http.responseText);
-        const response = await Decrypt(encResponse.Message, this.cryptoKey, encResponse.IV);
+        const response = await Decrypt(encResponse.Message, cryptoKey, encResponse.IV);
 
         return JSON.parse(response);
     },
@@ -181,7 +188,6 @@ setTimeout(() => {
 }, (1000));
 
 console.log("debug");
-InitSecurity("1234").then(ck => { pluginAbc123.cryptoKey = ck; }).catch(err => console.log(err));
 
 
 function setNativeValue(element, value) {

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <title>Easy Keepass Passwords</title>
+  <link rel="stylesheet" href="windowStyle.css" />
+  <script type="text/javascript" src="../shared/const.js"></script>
+</head>
+<body>
+    <div id="portState"></div>
+    <div id="stateLocked" class="hidden">
+        <span>Please unlock with your personal PIN</span>
+        <input type="password" id="passUnlock" name="pass" />
+        <input type="button" value="Unlock" id="unlockButton" />
+    </div>
+
+    <div id="stateUnlockedOk" class="hidden">
+        Everything good, yeah :D
+    </div>
+
+    <div id="stateUnlockedErr" class="hidden">
+        Is Keepass running and the db unlocked?
+    --> Go to settings
+    </div>
+
+    <div id="stateSetup" class="hidden">
+        Setup, enter all the data ^^
+    </div>
+
+
+
+    <script type="text/javascript" src="windowScript.js"></script>
+</body>
+</html>

@@ -26,6 +26,16 @@ function InitSecurity(password) {
         new TextEncoder().encode(password));
 }
 
+async function CryptoKeyToBase64(key) {
+  const raw = await crypto.subtle.exportKey("raw", key);
+  return base64js.fromByteArray(new Uint8Array(raw));
+}
+
+async function Base64ToKey(key) {
+  const raw = base64js.toByteArray(key);
+  return await crypto.subtle.importKey("raw", raw, "AES-CBC", false, ["encrypt", "decrypt"]);
+}
+
  /**
  * Encrypts the given data with the key and a randomly created IV
  * @param {string} rawData 
@@ -84,7 +94,7 @@ function Encrypt(rawData, key) {
     var key = await DecryptKey(keyEncrypted, passKey, keyIV);
     var equal = await CompareCalcWithHashed(key, keyHash);
     if (equal === true) {
-      const dataKey = await crypto.subtle.importKey("raw", key, "AES-CBC", false, ["encrypt", "decrypt"]);
+      const dataKey = await crypto.subtle.importKey("raw", key, "AES-CBC", true, ["encrypt", "decrypt"]);
       return dataKey;
     } else {
       return null;

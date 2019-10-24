@@ -26,6 +26,7 @@ namespace EasyBrowserPlugin
             _pHost = pHost;
             _server = new HttpListener();
             _server.Prefixes.Add("http://localhost:34567/");
+            _server.Prefixes.Add("http://localhost:34567/connectivity/");
         }
 
         public void Start()
@@ -48,6 +49,13 @@ namespace EasyBrowserPlugin
 
                 lock (workerLock)
                 {
+                    if (ctx.Request.HttpMethod == "GET" && ctx.Request.RawUrl == "/connectivity/")
+                    {
+                        ctx.Response.StatusCode = _pHost.Database.IsOpen ? 200 : 401;
+                        ctx.Response.OutputStream.Close();
+                        return;
+                    }
+
                     if (ctx.Request.HttpMethod != "POST")
                     {
                         ctx.Response.StatusCode = 405;
@@ -142,6 +150,7 @@ namespace EasyBrowserPlugin
             sp.SearchString = url;
             sp.SearchInUrls = true;
             sp.SearchInTitles = true;
+            sp.ExcludeExpired = true;
 
             var results = new PwObjectList<PwEntry>();
             _pHost.Database.RootGroup.SearchEntries(sp, results);
