@@ -1,0 +1,3 @@
+# EasyKeepassBrowserPlugin
+
+comming soon...

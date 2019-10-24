@@ -6,28 +6,39 @@
   <link rel="stylesheet" href="windowStyle.css" />
   <script type="text/javascript" src="../shared/const.js"></script>
 </head>
-<body>
-    <div id="portState"></div>
-    <div id="stateLocked" class="hidden">
-        <span>Please unlock with your personal PIN</span>
-        <input type="password" id="passUnlock" name="pass" />
-        <input type="button" value="Unlock" id="unlockButton" />
+<body id="body" class="normal">
+    <div id="content">
+        <div id="stateLocked" class="hidden">
+            <p>Please unlock with your personal PIN</p>
+            <p style="text-align: center;">
+                <input type="password" id="passUnlock" name="pass" />
+                <input type="button" value="Unlock" id="unlockButton" />
+            </p>
+            <p id="pwErr" class="hidden">Could not unlock. Password wrong?</p>
+        </div>
+
+        <div id="stateUnlockedOk" class="hidden">
+            <span>Connected to Keepass and ready to fill in passwords</span>
+        </div>
+
+        <div id="stateUnlockedErr" class="hidden">
+            <p>Unlocked sucessfully, but can't connect to Keepass</p>
+            <p>Is Keepass running and the database unlocked?</p>
+            <p>Go to settings</p>
+        </div>
+
+        <div id="stateSetup" class="hidden">
+            <p>Setup, enter all the data ^^</p>
+            <p><input type="button" value="leave" id="exitSetupButton" /></p>
+        </div>
+
+        <div id="goToSettings" class="hidden">
+            <p style="text-align: center;">
+                <input type="button" id="enterSetupButton" value="Settings" />
+            </p>
+        </div>
+
     </div>
-
-    <div id="stateUnlockedOk" class="hidden">
-        Everything good, yeah :D
-    </div>
-
-    <div id="stateUnlockedErr" class="hidden">
-        Is Keepass running and the db unlocked?
-    --> Go to settings
-    </div>
-
-    <div id="stateSetup" class="hidden">
-        Setup, enter all the data ^^
-    </div>
-
-
 
     <script type="text/javascript" src="windowScript.js"></script>
 </body>

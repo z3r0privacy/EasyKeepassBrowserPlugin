@@ -3,8 +3,19 @@ console.log("debug background");
 var state = stateLocked;
 var aesKey = null;
 
+function sendMessageToTabs(tabs) {
+    for (let tab of tabs) {
+      browser.tabs.sendMessage(
+        tab.id,
+        {action: actionGetState, state: state}
+      ).catch(onError => console.log(onError));
+    }
+  }
+
 function CheckConnectivity() {
     if (aesKey === null) return; 
+
+    const lastState = state;
 
     var http = new XMLHttpRequest();
     var url = 'http://localhost:34567/connectivity/';
@@ -14,13 +25,21 @@ function CheckConnectivity() {
 
     if (http.status !== 200) {
         state = stateUnlockedErr;  
-        browser.browserAction.setIcon({path: "../res/icon_closed.svg"});
     } else {
-        browser.browserAction.setIcon({path: "../res/icon_open.svg"});
         state = stateUnlockedOk;
     }
 
-    browser.runtime.sendMessage({action: actionGetState, state: state});
+    if (state !== lastState) {
+        browser.runtime.sendMessage({action: actionGetState, state: state});
+        
+        if (state === stateUnlockedOk) {
+            browser.browserAction.setIcon({path: "../res/icon_open.svg"});
+        } else {
+            browser.browserAction.setIcon({path: "../res/icon_closed.svg"});
+        }
+
+        browser.tabs.query({}).then(sendMessageToTabs).catch(onError=>console.log(onError));
+    }
 
     setTimeout(() => {
         CheckConnectivity();
@@ -36,7 +55,8 @@ function handleUnlockAttempt(m, rf) {
         if (key === null) return Promise.resolve(false);
         aesKey = key;
         return CheckConnectivity().then(() => Promise.resolve(true));
-    });
+    })
+    .catch(() => Promise.resolve(false));
 }
 
 browser.runtime.onMessage.addListener((m,s,rf) => {

@@ -1,4 +1,4 @@
-var pluginAbc123 = {
+var contentWorker = {
 
     observerStarted: false,
     obs: null,
@@ -62,7 +62,7 @@ var pluginAbc123 = {
     GetLoginData: async function (site) {
         console.log(site);
 
-        var cryptoKey64 = await browser.runtime.sendMessage({action: actionGetKey});
+        var cryptoKey64 = await browser.runtime.sendMessage({ action: actionGetKey });
         if (cryptoKey64 == null) {
             return { "FoundData": false, "Username": "", "Password": "" };
         }
@@ -183,12 +183,6 @@ var pluginAbc123 = {
             });
     }
 };
-setTimeout(() => {
-    pluginAbc123.FindAndFillLoginFields(null);
-}, (1000));
-
-console.log("debug");
-
 
 function setNativeValue(element, value) {
     const { set: valueSetter } = Object.getOwnPropertyDescriptor(element, 'value') || {}
@@ -203,4 +197,37 @@ function setNativeValue(element, value) {
         throw new Error('The given element does not have a value setter')
     }
     element.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function stateChange(msg) {
+    if (msg.action === undefined) return true;
+    if (msg.action !== actionGetState) return true;
+    if (msg.state === stateUnlockedOk) {
+        browser.runtime.onMessage.removeListener(stateChange);
+        contentWorker.FindAndFillLoginFields(null);
+    }
+    return true;
+}
+
+console.log("debug");
+
+function starter() {
+    browser.runtime.sendMessage({ action: actionGetState })
+        .then(state => {
+            if (state === stateUnlockedOk) {
+                contentWorker.FindAndFillLoginFields(null);
+            } else {
+                browser.runtime.onMessage.addListener(stateChange);
+            }
+        });
+}
+
+
+if (
+    document.readyState === "complete" ||
+    (document.readyState !== "loading" && !document.documentElement.doScroll)
+) {
+    starter();
+} else {
+    document.addEventListener("DOMContentLoaded", starter);
 }

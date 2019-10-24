@@ -19,7 +19,8 @@
         "<all_urls>",
         "storage",
         "activeTab",
-        "webRequest"
+        "webRequest",
+        "tabs"
     ],
     "browser_action":{
         "default_icon": "res/icon_closed.svg",

@@ -1,3 +1,35 @@
 .hidden {
     display: none;
 }
+
+#content {
+    padding: 10px;
+    font-family: Bookman;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+#pwErr {
+    color: #5e1414;
+    text-align: center;
+}
+
+.normal {
+    background-color: #048ecf;
+}
+
+.ok {
+    background-color: #38d424;
+}
+
+.error {
+    background-color: #c94b4b;
+}
+
+body {
+    border: none;
+}
+
+p {
+    text-align: center;
+}

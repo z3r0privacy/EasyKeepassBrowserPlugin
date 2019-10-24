@@ -1,6 +1,7 @@
 console.log("debug entry");
 
-
+var inSettingsOverride = false;
+const divs = [stateLocked, stateUnlockedErr, stateUnlockedOk];
 
 
 // register handlers
@@ -13,6 +14,8 @@ browser.runtime.onMessage.addListener(msg => {
     return true;
 });
 document.getElementById("unlockButton").onclick = () => unlockClicked();
+document.getElementById("enterSetupButton").onclick = () => enterSetup();
+document.getElementById("exitSetupButton").onclick = () => leaveSetup();
 
 
 DisplayCorrectSection();
@@ -25,8 +28,16 @@ function DisplayCorrectSection() {
     });
 }
 
-const divs = [stateLocked, stateUnlockedErr, stateUnlockedOk, stateSetup];
 function HandleStateChange(state) {
+    if (inSettingsOverride === true) {
+        state = null;
+        document.getElementById("goToSettings").classList.add("hidden");
+        document.getElementById("stateSetup").classList.remove("hidden");
+    } else {
+        document.getElementById("goToSettings").classList.remove("hidden");
+        document.getElementById("stateSetup").classList.add("hidden");
+    }
+
     for (var i = 0; i < divs.length; i++) {
         if (state === divs[i]) {
             document.getElementById(divs[i]).classList.remove("hidden");
@@ -34,6 +45,25 @@ function HandleStateChange(state) {
             document.getElementById(divs[i]).classList.add("hidden");
         }
     }
+    var b = document.getElementById("body");
+    b.classList.remove(b.classList.item(0));
+    if (state === stateUnlockedErr) {
+        b.classList.add("error");
+    } else if (state === stateUnlockedOk) {
+        b.classList.add("ok");
+    } else {
+        b.classList.add("normal");
+    }
+}
+
+function enterSetup() {
+    inSettingsOverride = true;
+    HandleStateChange(null);
+}
+
+function leaveSetup() {
+    inSettingsOverride = false;
+    DisplayCorrectSection();
 }
 
 function unlockClicked() {
@@ -44,8 +74,11 @@ function unlockClicked() {
         if (succ === true) {
             console.log("unlock successful");
             //DisplayCorrectSection();
+            document.getElementById("pwErr").classList.add("hidden");
         } else {
             console.log("wrong pw");
+            document.getElementById("pwErr").classList.remove("hidden");
+            document.getElementById("passUnlock").value = "";
         }
     });
 }
