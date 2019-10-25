@@ -9,7 +9,7 @@
     font-weight: 500;
 }
 
-#pwErr {
+#pwErr, #setupErr {
     color: #5e1414;
     text-align: center;
 }

@@ -1,28 +1,9 @@
-const encKey = "S5RhP0asXEZ16YSmjSs1zSwD+pd10N6ph8/oZcZnw/A5EhYYR3Y5OhXV2wFMnm07";
-const hashKey = "87a9591e8104de11be1fb19e5fdb5ffb9fa0004df2f85525fbaf6ce0d1762756";
-const ivKey = "vWOwLG83NDAjylwQD2iZTw==";
-const encIter = 1000;
-const encSalt = "salz";
-
-// test-data:
-/*
- * AES-Key communication: Tm1++5/kHxSGVbD8I/sBE9E7pM+nDYgwcyoEEYqttDY=
- * Password: 1234
- * -> PassKey: gOpdYqQe+7/rV9a9sKua6msfklEKkA2H2x/YKu4asXo=
- * Encrypted AES-Key: S5RhP0asXEZ16YSmjSs1zSwD+pd10N6ph8/oZcZnw/A5EhYYR3Y5OhXV2wFMnm07
- *  -> IV: vWOwLG83NDAjylwQD2iZTw==
- * Salt: salz
- * iterations: 1000
- * Hashed AES-Key: 0x87a9591e8104de11be1fb19e5fdb5ffb9fa0004df2f85525fbaf6ce0d1762756
- */
-
-
-function InitSecurity(password) {
+function InitSecurity(password, encKey, ivKey, hashKey, salt, encIter) {
     return GetDataKey(base64js.toByteArray(encKey),
         fromHexString(hashKey),
         base64js.toByteArray(ivKey),
         encIter,
-        new TextEncoder().encode(encSalt),
+        base64js.toByteArray(salt),
         new TextEncoder().encode(password));
 }
 
@@ -103,17 +84,17 @@ function Encrypt(rawData, key) {
 
   async function CreateKeys(key64, pin) {
     const numIter = 10000;
-    const salt = base64js.fromByteArray(crypto.getRandomValues(new Uint8Array(4)));
-    const passKey = await GetPassKey(pin, salt, numIter);
+    const salt = crypto.getRandomValues(new Uint8Array(4));
+    const passKey = await GetPassKey(new TextEncoder().encode(pin), salt, numIter);
     const iv = crypto.getRandomValues(new Uint8Array(16));
     const key = base64js.toByteArray(key64);
-    const encKey = await crypto.subtle.encrypt({name: "AES-CBC", iv: iv}, passKey, base64js.toByteArray(key));
+    const encKey = await crypto.subtle.encrypt({name: "AES-CBC", iv: iv}, passKey, key);
     const hash = await crypto.subtle.digest("SHA-256", key);
     return {
       iv: base64js.fromByteArray(iv),
-      encKey: base64js.fromByteArray(encKey),
-      hash: toHexString(hash),
-      salt: salt,
+      encKey: base64js.fromByteArray(new Uint8Array(encKey)),
+      hash: toHexString(new Uint8Array(hash)),
+      salt: base64js.fromByteArray(salt),
       iterations: numIter
     };
   }
@@ -180,47 +161,4 @@ function Encrypt(rawData, key) {
   function fromHexString(hexString) {
     return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
   }
-  
-  // ---------------------
-/*  
-GetDataKey(base64js.toByteArray(encKey),
-    fromHexString(hashKey),
-    base64js.toByteArray(ivKey),
-    encIter,
-    new TextEncoder().encode(encSalt),
-    new TextEncoder().encode("1234"))
-.then(k => {
-    console.log(k);
-})
-.catch(err => console.log(err));
-  
-  /*
-  GetPassKey("1234", "salz", 1000).then(k => {
-      console.log("Accepted:");
-    /*const eK = crypto.subtle.exportKey("raw", k);
-    eK.then(_ek => {
-      console.log(new Uint8Array(_ek));
-      const kB64 = base64js.fromByteArray(new Uint8Array(_ek));
-      console.log("passKey: '" + kB64 + "'");
-      });*/
-  /*
-    return k;
-  })
-  .then(passKey => {
-      const aesKey64 = "Tm1++5/kHxSGVbD8I/sBE9E7pM+nDYgwcyoEEYqttDY=";
-    const aesKey = base64js.toByteArray(aesKey64);
-    crypto.subtle.digest("SHA-256", aesKey).then(h => {
-        
-        console.log("0x" + toHexString(new Uint8Array(h)));
-    }).catch(err => console.log(err));
-    const iv = window.crypto.getRandomValues(new Uint8Array(16));
-    const ivStr = base64js.fromByteArray(iv);
-    console.log("IV: " + ivStr);
-    return crypto.subtle.encrypt({name:"AES-CBC", iv:iv}, passKey, aesKey);
-  })
-  .then(encKey => {
-      console.log("encrypted key: " + base64js.fromByteArray(new Uint8Array(encKey)));
-    return encKey;
-  })
-  .catch(r => console.log("Rejected: " + r));*/
   

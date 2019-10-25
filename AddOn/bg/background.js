@@ -5,7 +5,7 @@ var aesKey = null;
 
 function startup() {
     state = stateSetup;
-    browser.storage.local.get("confdone")
+    browser.storage.local.get("confDone")
         .then(data => {
             if (data.confDone !== undefined && data.confDone === true) {
                 state = stateLocked;
@@ -49,16 +49,18 @@ function refreshState() {
 
         browser.tabs.query({}).then(sendMessageToTabs).catch(onError=>console.log(onError));
     }
+
+    return Promise.resolve();
 }
 
 function CheckConnectivity() {
     if (aesKey === null) return; 
 
-    refreshState();
-
-    setTimeout(() => {
-        CheckConnectivity();
-    }, 2000);
+    return refreshState().then(() => {
+        setTimeout(() => {
+            CheckConnectivity();
+        }, 2000);
+    });
 }
 
 function handleUnlockAttempt(m) {
@@ -66,7 +68,7 @@ function handleUnlockAttempt(m) {
         return false;
     }
 
-    browser.storage.local.get(["iv", "encKey", "hash", "salt", "iterations"])
+    return browser.storage.local.get(["iv", "encKey", "hash", "salt", "iterations"])
         .then(data => {
             return InitSecurity(m.pass, data.encKey, data.iv, data.hash, data.salt, data.iterations);
         })
@@ -84,12 +86,14 @@ function handleSetup(m) {
             return Promise.resolve(false);
         }
 
+    state = stateSetup;
+
     return CreateKeys(m.aesKey, m.pin).
         then(data => {
             return browser.storage.local.set(data);
         })
         .then(() => {
-            return handleUnlockAttempt({key: m.pin});
+            return handleUnlockAttempt({pass: m.pin});
         })
         .then(suc => {
             if (suc === true) {

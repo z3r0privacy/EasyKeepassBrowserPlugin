@@ -60,10 +60,30 @@ function HandleStateChange(state) {
     }
 }
 
+function setupErr(msg) {
+    document.getElementById("setupErrReason").innerText = msg;
+    document.getElementById("setupErr").classList.remove("hidden");
+}
+
 function saveSetup() {
     const aesTxt = document.getElementById("setupAes");
     const aes = aesTxt.value;
     const pin = document.getElementById("setupPin1").value;
+    const pin2 = document.getElementById("setupPin2").value;
+
+    if (pin === "") {
+        setupErr("Empty Pin not allowed");
+        return;
+    }
+    if (pin !== pin2) {
+        setupErr("Pins do not match");
+        return;
+    }
+    if (aes === "") {
+        setupErr("Empty AES key does not work");
+        return;
+    }
+
     browser.runtime.sendMessage({
         action: actionSetup,
         aesKey: aes,
@@ -71,12 +91,14 @@ function saveSetup() {
     })
     .then(suc => {
         if (suc === true) {
-            console.log("setup yeah");
+            document.getElementById("setupErr").classList.add("hidden");
+            inSettingsOverride = false;
+            DisplayCorrectSection();
         } else {
-            console.log("oh man...");
+            setupErr("Error performing cryptographic actions. Is the aes key correctly?");
         }
     })
-    .catch(err => console.log(err));
+    .catch(err => setupErr(err));
 }
 
 function enterSetup() {
