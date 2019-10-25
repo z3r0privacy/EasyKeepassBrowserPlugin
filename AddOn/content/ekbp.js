@@ -92,6 +92,10 @@ var contentWorker = {
     },
 
     IsSameSource: function (url) {
+        if (!url.includes("://")) {
+            return true;
+        }
+
         var baseUrl = window.location.href;
         var baseUrlL = baseUrl.indexOf('/', baseUrl.indexOf('/') + 2);
         baseUrl = baseUrl.substring(0, baseUrlL + 1);
@@ -99,7 +103,12 @@ var contentWorker = {
     },
 
     SearchIframes: function (doc) {
-        var iframes = document.getRootNode().getElementsByTagName("iframe");
+        var iFramesX = doc.getRootNode().getElementsByTagName("iframe");
+        var framesX = doc.getRootNode().getElementsByTagName("frame");
+        var iframes = [];
+        iframes.push(...iFramesX);
+        iframes.push(...framesX);
+
         var pwdFields = [];
 
         for (var i = 0; i < iframes.length; i++) {
@@ -107,9 +116,21 @@ var contentWorker = {
                 continue;
             }
 
-            var fields = this.GetPwdFields(iframes[i].contentDocument);
-            for (var j = 0; j < fields.length; j++) {
-                pwdFields.push(fields[j]);
+            const searchFrameFields = frameDoc => {
+                var fields = this.GetPwdFields(frameDoc);
+                for (var j = 0; j < fields.length; j++) {
+                    pwdFields.push(fields[j]);
+                }
+            };
+
+            if (
+                iframes[i].contentDocument.readyState === "complete" ||
+                (iframes[i].contentDocument.readyState !== "loading" && !iframes[i].contentDocument.documentElement.doScroll)
+            ) {
+                searchFrameFields(iframes[i].contentDocument);
+            } else {
+                //iframes[i].contentDocument.addEventListener("load", () => console.log("frame loaded"));
+                iframes[i].addEventListener("load", () => contentWorker.FindAndFillLoginFields(null));
             }
         }
         return pwdFields;
@@ -117,7 +138,12 @@ var contentWorker = {
 
     ObsCallback: function (list, obs, plgin) {
         for (var j = 0; j < list.length; j++) {
-            var newIframes = list[j].addedNodes[0].getElementsByTagName("iframe");
+            var newIframesX = list[j].addedNodes[0].getElementsByTagName("iframe");
+            var newFramesX = list[j].addedNodes[0].getElementsByTagName("frame");
+            var newIframes = [];
+            newIframes.push(...newIframesX);
+            newIframes.push(...newFramesX);
+
             for (var y = 0; y < newIframes.length; y++) {
                 if (plgin.IsSameSource(newIframes[y].getAttribute("src"))) {
                     newIframes[y].addEventListener("load", ev => {
