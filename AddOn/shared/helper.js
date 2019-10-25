@@ -73,3 +73,40 @@ function IsFilterInputType(el, includePw) {
             || t === "url"
             || t === "week");
 }
+
+function PerformWebrequest(method, url, body, modifyXhr) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.url = url;
+        if (modifyXhr !== undefined && modifyXhr !== null) {
+            modifyXhr(xhr);
+        }
+        xhr.open(method, url, true);
+
+        xhr.onload = () => {
+            console.log("onload: " + xhr.status);
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(xhr.responseText);
+            } else {
+                reject(xhr.statusText);
+            }
+        };
+        xhr.onerror = () => {
+            console.log("onerror: " + xhr.statusText);
+            reject(xhr.statusText);
+        }
+        xhr.onreadystatechange = () => {
+            console.log("xhr state change: " + xhr.readyState);
+        };
+        xhr.ontimeout = () => {
+            console.log("timeout... " + xhr.statusText);
+            reject(xhr.statusText);
+        };
+
+        if (body === null) {
+            xhr.send();
+        } else {
+            xhr.send(body);
+        }
+    });
+}

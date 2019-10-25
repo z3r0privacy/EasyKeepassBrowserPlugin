@@ -67,26 +67,19 @@ var contentWorker = {
 
         var cryptoKey = await Base64ToKey(cryptoKey64);
 
-        var http = new XMLHttpRequest();
         var url = 'http://localhost:34567/';
         var params = JSON.stringify({
             Url: site
         });
-        const sendData = await Encrypt(params, cryptoKey);
-        http.timeout = 500;
-        http.open('POST', url, false);
-        http.setRequestHeader('Content-type', 'text/json');
-        http.send(JSON.stringify(sendData));
+        const body = JSON.stringify(await Encrypt(params, cryptoKey));
 
-        if (http.status === 0) {
-            //alert('error http');
-            return { "FoundData": false, "Username": "", "Password": "" };
-        }
-
-        const encResponse = JSON.parse(http.responseText);
-        const response = await Decrypt(encResponse.Message, cryptoKey, encResponse.IV);
-
-        return JSON.parse(response);
+        return PerformWebrequest('POST', url, body, xhr => {xhr.timeout = 1000;})
+            .then(data => JSON.parse(data))
+            .then(resp => {
+                return Decrypt(resp.Message, cryptoKey, resp.IV);
+            })
+            .then(ans => JSON.parse(ans))
+            .catch(() => { return {"FoundData": false, "Username": "", "Password": "" };});
     },
 
     IsSameSource: function (url) {
@@ -238,7 +231,6 @@ function starter() {
             }
         });
 }
-
 
 if (
     document.readyState === "complete" ||

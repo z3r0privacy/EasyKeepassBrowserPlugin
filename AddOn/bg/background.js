@@ -22,33 +22,35 @@ function sendMessageToTabs(tabs) {
 
 
 function refreshState() {
-    const lastState = state;
+    // var http = new XMLHttpRequest();
+    // var url = 'http://localhost:34567/connectivity/';
+    // //http.timeout = 500;
+    // http.open('GET', url, false);
+    // http.send();
 
-    var http = new XMLHttpRequest();
-    var url = 'http://localhost:34567/connectivity/';
-    //http.timeout = 500;
-    http.open('GET', url, false);
-    http.send();
+    const stateChange = newState => {
+        if (state !== newState) {
+            state = newState;
 
-    if (http.status !== 200) {
-        state = stateUnlockedErr;  
-    } else {
-        state = stateUnlockedOk;
-    }
+            browser.runtime.sendMessage({action: actionGetState, state: state});
+                
+            if (state === stateUnlockedOk) {
+                browser.browserAction.setIcon({path: "../res/icon_open.svg"});
+            } else {
+                browser.browserAction.setIcon({path: "../res/icon_closed.svg"});
+            }
 
-    if (state !== lastState) {
-        browser.runtime.sendMessage({action: actionGetState, state: state});
-        
-        if (state === stateUnlockedOk) {
-            browser.browserAction.setIcon({path: "../res/icon_open.svg"});
-        } else {
-            browser.browserAction.setIcon({path: "../res/icon_closed.svg"});
+            browser.tabs.query({}).then(sendMessageToTabs);
         }
+    };
 
-        browser.tabs.query({}).then(sendMessageToTabs);
-    }
-
-    return Promise.resolve();
+    return PerformWebrequest('GET', 'http://localhost:34567/connectivity/', null, xhr => {xhr.timeout = 500;})
+        .then(_txt => {
+            stateChange(stateUnlockedOk);
+        })
+        .catch(_err => {
+            stateChange(stateUnlockedErr)
+        });
 }
 
 function CheckConnectivity() {
