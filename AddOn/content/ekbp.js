@@ -21,10 +21,10 @@ var contentWorker = {
         return ary;
     },
 
-    SelectPwdField: function (fields) {
+    SelectPwdField: function (fields, shouldBeVisible) {
         for (var i = 0; i < fields.length; i++) {
-            if (IsVisible(fields[i])) {
-                if (IsNotPartOfRegisterForm(fields[i])) {
+            if (IsVisible(fields[i]) === shouldBeVisible) {
+                if (IsNotPartOfRegisterForm(fields[i], shouldBeVisible)) {
                     return fields[i];
                 }
             }
@@ -157,7 +157,10 @@ var contentWorker = {
             doc = document.getRootNode();
         }
         var pwds = this.GetPwdFields(doc);
-        var pwd = this.SelectPwdField(pwds);
+        var pwd = this.SelectPwdField(pwds, true);
+        if (pwd === null) {
+            pwd = this.SelectPwdField(pwds, false);
+        }
 
         if (pwd === null) {
             if (this.observerStarted === false) {
@@ -189,17 +192,12 @@ var contentWorker = {
                     this.obs.disconnect();
                 }
 
-                //pwd.select();
-                //pwd.value = data.Password;
-                setTimeout(function () { setNativeValue(pwd, data.Password); }, 0);
+                setNativeValue(pwd, data.Password);
                 if (userField !== undefined) {
                     if (userField.hasAttribute("autocomplete")) {
                         userField.removeAttribute("autocomplete");
                     }
-                    //userField.setAttribute('value', data.Username);
-                    //userField.select();
-                    //userField.value = data.Username;
-                    setTimeout(function () { setNativeValue(userField, data.Username); }, 0);
+                    setNativeValue(userField, data.Username);
                 }
             });
     }

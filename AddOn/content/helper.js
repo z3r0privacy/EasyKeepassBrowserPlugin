@@ -1,17 +1,26 @@
 function IsVisible(el) {
+    return IsVisibleEx(el, 0);
+}
+function IsVisibleEx(el, maxDepth) {
+    var depth = 0;
+
     while (el !== null) {
         var cstyle = window.getComputedStyle(el);
         if (cstyle.visibility !== "visible" || cstyle.display === "none") {
             return false;
         }
         el = el.parentElement;
+        depth++;
+        if (depth === maxDepth) {
+            break;
+        }
     }
     return true;
 }
 
-function IsNotPartOfRegisterForm(el) {
+function IsNotPartOfRegisterForm(el, onlyVisibleInputs) {
     var form = el.parentElement;
-    while (form.tagName !== "FORM" && form !== null) {
+    while (form !== null && form.tagName !== "FORM") {
         form = form.parentElement;
     }
     if (form === null) {
@@ -26,7 +35,7 @@ function IsNotPartOfRegisterForm(el) {
         if (IsFilterInputType(inputFields[i], false)) {
             continue;
         }
-        if (IsVisible(inputFields[i]) === false) {
+        if (IsVisibleEx(inputFields[i], 1) === false) {
             continue;
         }
         if (inputFields[i].type.toLowerCase() === "password") {
