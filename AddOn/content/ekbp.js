@@ -54,14 +54,12 @@ var contentWorker = {
             return undefined;
         }
         if (userFields.length > 1) {
-            console.log(userFields);
+
         }
         return userFields[0];
     },
 
     GetLoginData: async function (site) {
-        console.log(site);
-
         var cryptoKey64 = await browser.runtime.sendMessage({ action: actionGetKey });
         if (cryptoKey64 == null) {
             return { "FoundData": false, "Username": "", "Password": "" };
@@ -129,7 +127,6 @@ var contentWorker = {
             ) {
                 searchFrameFields(iframes[i].contentDocument);
             } else {
-                //iframes[i].contentDocument.addEventListener("load", () => console.log("frame loaded"));
                 iframes[i].addEventListener("load", () => contentWorker.FindAndFillLoginFields(null));
             }
         }
@@ -147,8 +144,6 @@ var contentWorker = {
             for (var y = 0; y < newIframes.length; y++) {
                 if (plgin.IsSameSource(newIframes[y].getAttribute("src"))) {
                     newIframes[y].addEventListener("load", ev => {
-                        console.log("going to call findandfill on ");
-                        console.log(plgin);
                         plgin.FindAndFillLoginFields(ev.target.contentDocument);
                     });
                 }
@@ -234,8 +229,6 @@ function stateChange(msg) {
     }
     return true;
 }
-
-console.log("debug");
 
 function starter() {
     browser.runtime.sendMessage({ action: actionGetState })

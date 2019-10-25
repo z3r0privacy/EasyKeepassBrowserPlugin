@@ -1,5 +1,3 @@
-console.log("debug background");
-
 var state = null;
 var aesKey = null;
 
@@ -18,7 +16,7 @@ function sendMessageToTabs(tabs) {
       browser.tabs.sendMessage(
         tab.id,
         {action: actionGetState, state: state}
-      ).catch(onError => console.log(onError));
+      );
     }
   }
 
@@ -47,7 +45,7 @@ function refreshState() {
             browser.browserAction.setIcon({path: "../res/icon_closed.svg"});
         }
 
-        browser.tabs.query({}).then(sendMessageToTabs).catch(onError=>console.log(onError));
+        browser.tabs.query({}).then(sendMessageToTabs);
     }
 
     return Promise.resolve();
@@ -105,7 +103,6 @@ function handleSetup(m) {
             }
         })
         .catch(err => {
-            console.log("setup failed: " + err);
             return Promise.resolve(false);
         });
 }

@@ -1,12 +1,9 @@
-console.log("debug entry");
-
 var inSettingsOverride = false;
 const divs = [stateLocked, stateUnlockedErr, stateUnlockedOk];
 
 
 // register handlers
 browser.runtime.onMessage.addListener(msg => {
-    console.log("got message");
     if (msg.action === undefined) return true;
     if (msg.action === actionGetState) {
         HandleStateChange(msg.state);
@@ -24,7 +21,6 @@ DisplayCorrectSection();
 function DisplayCorrectSection() {
     var send = browser.runtime.sendMessage({action: actionGetState});
     send.then(resp => {
-        console.log("got response: " + resp);
         HandleStateChange(resp);
     });
 }
@@ -115,13 +111,9 @@ function unlockClicked() {
     const pw = document.getElementById("passUnlock").value;
     var send = browser.runtime.sendMessage({action : actionTryUnlock, pass: pw});
     send.then(succ => {
-        console.log(succ);
         if (succ === true) {
-            console.log("unlock successful");
-            //DisplayCorrectSection();
             document.getElementById("pwErr").classList.add("hidden");
         } else {
-            console.log("wrong pw");
             document.getElementById("pwErr").classList.remove("hidden");
             document.getElementById("passUnlock").value = "";
         }
