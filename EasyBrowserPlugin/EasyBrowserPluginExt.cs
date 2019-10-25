@@ -55,10 +55,10 @@ namespace EasyBrowserPlugin
         {
             if (t == PluginMenuType.Main)
             {
-                var main = new ToolStripMenuItem()
-                {
-                    Text = "EasyBroswerAddon"
-                };
+                //var main = new ToolStripMenuItem()
+                //{
+                //    Text = "EasyBroswerAddon"
+                //};
 
                 var mi = new ToolStripMenuItem()
                 {
@@ -66,17 +66,18 @@ namespace EasyBrowserPlugin
                 };
                 mi.Click += OpenAddonSetupWindow;
 
-                main.DropDownItems.Add(mi);
+                //main.DropDownItems.Add(mi);
 
-                var dl = new ToolStripMenuItem()
-                {
-                    Text = "Launch Debugger"
-                };
-                dl.Click += (s, e) => Debugger.Launch();
+                //var dl = new ToolStripMenuItem()
+                //{
+                //    Text = "Launch Debugger"
+                //};
+                //dl.Click += (s, e) => Debugger.Launch();
 
-                main.DropDownItems.Add(dl);
+                //main.DropDownItems.Add(dl);
 
-                return main;
+                //return main;
+                return mi;
             }
             return null;
         }

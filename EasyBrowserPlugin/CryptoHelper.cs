@@ -49,9 +49,9 @@ namespace EasyBrowserPlugin
                     }
                 }
 
-            } catch (Exception e)
+            } catch (Exception)
             {
-                MessageBox.Show(e.ToString(), e.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Received a request from the browser addon which could not be read. Please consider redo the setup process in the addon.", "Could not read browser addon request", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             return null;
@@ -90,9 +90,9 @@ namespace EasyBrowserPlugin
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                MessageBox.Show(e.ToString(), e.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error occured while sending answer to the browser addOn. Has the key changed in the database? Please ensure the entry named 'EasyBrowserAddonKey' is still available and unchanged.", "Error on sending login entry to browser plugin", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             return null;
