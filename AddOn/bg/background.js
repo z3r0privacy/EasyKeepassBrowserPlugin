@@ -1,7 +1,17 @@
 console.log("debug background");
 
-var state = stateLocked;
+var state = null;
 var aesKey = null;
+
+function startup() {
+    state = stateSetup;
+    browser.storage.local.get("confdone")
+        .then(data => {
+            if (data.confDone !== undefined && data.confDone === true) {
+                state = stateLocked;
+            }
+        })
+}
 
 function sendMessageToTabs(tabs) {
     for (let tab of tabs) {
@@ -12,9 +22,8 @@ function sendMessageToTabs(tabs) {
     }
   }
 
-function CheckConnectivity() {
-    if (aesKey === null) return; 
 
+function refreshState() {
     const lastState = state;
 
     var http = new XMLHttpRequest();
@@ -40,35 +49,76 @@ function CheckConnectivity() {
 
         browser.tabs.query({}).then(sendMessageToTabs).catch(onError=>console.log(onError));
     }
+}
+
+function CheckConnectivity() {
+    if (aesKey === null) return; 
+
+    refreshState();
 
     setTimeout(() => {
         CheckConnectivity();
     }, 2000);
 }
 
-function handleUnlockAttempt(m, rf) {
+function handleUnlockAttempt(m) {
     if (m.pass === undefined) {
         return false;
     }
 
-    return InitSecurity(m.pass).then(key => {
-        if (key === null) return Promise.resolve(false);
-        aesKey = key;
-        return CheckConnectivity().then(() => Promise.resolve(true));
-    })
-    .catch(() => Promise.resolve(false));
+    browser.storage.local.get(["iv", "encKey", "hash", "salt", "iterations"])
+        .then(data => {
+            return InitSecurity(m.pass, data.encKey, data.iv, data.hash, data.salt, data.iterations);
+        })
+        .then(key => {
+            if (key === null) return Promise.resolve(false);
+            aesKey = key;
+            return CheckConnectivity().then(() => Promise.resolve(true));
+        })
+        .catch(() => Promise.resolve(false));
+}
+
+function handleSetup(m) {
+    if (m.aesKey === undefined ||
+        m.pin === undefined) {
+            return Promise.resolve(false);
+        }
+
+    return CreateKeys(m.aesKey, m.pin).
+        then(data => {
+            return browser.storage.local.set(data);
+        })
+        .then(() => {
+            return handleUnlockAttempt({key: m.pin});
+        })
+        .then(suc => {
+            if (suc === true) {
+                browser.storage.local.set({confDone: true});
+                return Promise.resolve(true);
+            } else {
+                browser.storage.local.clear();
+                return Promise.resolve(false);
+            }
+        })
+        .catch(err => {
+            console.log("setup failed: " + err);
+            return Promise.resolve(false);
+        });
 }
 
 browser.runtime.onMessage.addListener((m,s,rf) => {
     if (m.action === undefined) return;
-    if (rf === undefined) return;
     if (m.action === actionGetState) {
-        //rf(state);
         return Promise.resolve(state);
     } else if (m.action === actionTryUnlock) {
-        return handleUnlockAttempt(m, rf);
+        return handleUnlockAttempt(m);
     } else if (m.action === actionGetKey) {
         if (aesKey === null) return Promise.resolve(null);
         return CryptoKeyToBase64(aesKey);
+    } else if (m.action === actionSetup) {
+        return handleSetup(m);
     }
+    return;
 });
+
+startup();

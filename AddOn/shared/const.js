@@ -6,3 +6,4 @@ const stateSetup = "stateSetup";
 const actionGetState = "msgActionGetState";
 const actionTryUnlock = "msgActionTryUnlock";
 const actionGetKey = "msgActionGetKey";
+const actionSetup = "msgActionSetup";

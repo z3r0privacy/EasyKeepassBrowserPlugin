@@ -16,6 +16,7 @@ browser.runtime.onMessage.addListener(msg => {
 document.getElementById("unlockButton").onclick = () => unlockClicked();
 document.getElementById("enterSetupButton").onclick = () => enterSetup();
 document.getElementById("exitSetupButton").onclick = () => leaveSetup();
+document.getElementById("saveSetupButton").onclick = () => saveSetup();
 
 
 DisplayCorrectSection();
@@ -29,6 +30,9 @@ function DisplayCorrectSection() {
 }
 
 function HandleStateChange(state) {
+    if (state === stateSetup) {
+        inSettingsOverride = true;
+    }
     if (inSettingsOverride === true) {
         state = null;
         document.getElementById("goToSettings").classList.add("hidden");
@@ -54,6 +58,25 @@ function HandleStateChange(state) {
     } else {
         b.classList.add("normal");
     }
+}
+
+function saveSetup() {
+    const aesTxt = document.getElementById("setupAes");
+    const aes = aesTxt.value;
+    const pin = document.getElementById("setupPin1").value;
+    browser.runtime.sendMessage({
+        action: actionSetup,
+        aesKey: aes,
+        pin: pin
+    })
+    .then(suc => {
+        if (suc === true) {
+            console.log("setup yeah");
+        } else {
+            console.log("oh man...");
+        }
+    })
+    .catch(err => console.log(err));
 }
 
 function enterSetup() {

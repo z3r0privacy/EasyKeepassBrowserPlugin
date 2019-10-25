@@ -100,6 +100,23 @@ function Encrypt(rawData, key) {
       return null;
     }
   }
+
+  async function CreateKeys(key64, pin) {
+    const numIter = 10000;
+    const salt = base64js.fromByteArray(crypto.getRandomValues(new Uint8Array(4)));
+    const passKey = await GetPassKey(pin, salt, numIter);
+    const iv = crypto.getRandomValues(new Uint8Array(16));
+    const key = base64js.toByteArray(key64);
+    const encKey = await crypto.subtle.encrypt({name: "AES-CBC", iv: iv}, passKey, base64js.toByteArray(key));
+    const hash = await crypto.subtle.digest("SHA-256", key);
+    return {
+      iv: base64js.fromByteArray(iv),
+      encKey: base64js.fromByteArray(encKey),
+      hash: toHexString(hash),
+      salt: salt,
+      iterations: numIter
+    };
+  }
   
   /**
    * 
