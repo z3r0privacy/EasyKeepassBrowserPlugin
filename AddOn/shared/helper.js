@@ -84,7 +84,6 @@ function PerformWebrequest(method, url, body, modifyXhr) {
         xhr.open(method, url, true);
 
         xhr.onload = () => {
-            console.log("onload: " + xhr.status);
             if (xhr.status >= 200 && xhr.status < 300) {
                 resolve(xhr.responseText);
             } else {
@@ -92,14 +91,9 @@ function PerformWebrequest(method, url, body, modifyXhr) {
             }
         };
         xhr.onerror = () => {
-            console.log("onerror: " + xhr.statusText);
             reject(xhr.statusText);
         }
-        xhr.onreadystatechange = () => {
-            console.log("xhr state change: " + xhr.readyState);
-        };
         xhr.ontimeout = () => {
-            console.log("timeout... " + xhr.statusText);
             reject(xhr.statusText);
         };
 
