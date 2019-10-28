@@ -1,4 +1,5 @@
-﻿using KeePass.Forms;
+﻿using EasyBrowserPlugin.UI;
+using KeePass.Forms;
 using KeePass.Plugins;
 using KeePassLib;
 using KeePassLib.Security;
@@ -86,7 +87,11 @@ namespace EasyBrowserPlugin
         {
             if (_pHost.Database.IsOpen)
             {
-                var wnd = new AddonSetupWindow(this);
+                var vm = new SetupDialogViewModel()
+                {
+                    Key = Convert.ToBase64String(CryptoKey)
+                };
+                var wnd = new SetupDialog(vm); // new AddonSetupWindow(this);
                 wnd.ShowDialog();
             } else
             {
