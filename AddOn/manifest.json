@@ -12,7 +12,7 @@
         {
             "matches": ["<all_urls>"],
             "run_at": "document_end",
-            "js": ["shared/const.js", "shared/helper.js", "shared/base64js.min.js", "shared/security.js", "content/ekbp.js"]
+            "js": ["shared/browser-polyfill.js", "shared/const.js", "shared/helper.js", "shared/base64js.min.js", "shared/security.js", "content/ekbp.js"]
         }
     ],
     "permissions": [
@@ -33,6 +33,6 @@
         
     ],
     "background": {
-        "scripts": ["shared/const.js", "shared/helper.js", "shared/base64js.min.js", "shared/security.js", "bg/background.js"]
+        "scripts": ["shared/browser-polyfill.js", "shared/const.js", "shared/helper.js", "shared/base64js.min.js", "shared/security.js", "bg/background.js"]
     }
 }
