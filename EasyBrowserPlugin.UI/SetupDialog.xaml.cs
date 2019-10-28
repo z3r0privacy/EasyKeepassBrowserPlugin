@@ -25,8 +25,8 @@ namespace EasyBrowserPlugin.UI
 
         public SetupDialog(SetupDialogViewModel vm)
         {
-            DataContext = vm;
             InitializeComponent();
+            DataContext = vm;
         }
 
         private void CloseOk()

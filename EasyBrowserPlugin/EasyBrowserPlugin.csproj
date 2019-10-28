@@ -52,12 +52,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AddonSetupWindow.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AddonSetupWindow.Designer.cs">
-      <DependentUpon>AddonSetupWindow.cs</DependentUpon>
-    </Compile>
     <Compile Include="CryptoHelper.cs" />
     <Compile Include="EasyBrowserPluginExt.cs" />
     <Compile Include="HTTPHandler.cs" />
@@ -67,11 +61,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="AddonSetupWindow.resx">
-      <DependentUpon>AddonSetupWindow.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EasyBrowserPlugin.UI\EasyBrowserPlugin.UI.csproj">
