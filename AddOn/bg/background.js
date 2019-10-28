@@ -109,6 +109,13 @@ function handleSetup(m) {
         });
 }
 
+function handleGetLogin(m) {
+    if (m.content === undefined) return Promise.reject();
+    if (m.url === undefined) return Promise.reject();
+    return PerformWebrequest('POST', m.url, m.content, xhr => {xhr.timeout=1000;})
+        .then(data => JSON.parse(data));
+}
+
 browser.runtime.onMessage.addListener((m,s,rf) => {
     if (m.action === undefined) return;
     if (m.action === actionGetState) {
@@ -120,6 +127,8 @@ browser.runtime.onMessage.addListener((m,s,rf) => {
         return CryptoKeyToBase64(aesKey);
     } else if (m.action === actionSetup) {
         return handleSetup(m);
+    } else if (m.action === actionGetLogin) {
+        return handleGetLogin(m);
     }
     return;
 });

@@ -73,8 +73,9 @@ var contentWorker = {
         });
         const body = JSON.stringify(await Encrypt(params, cryptoKey));
 
-        return PerformWebrequest('POST', url, body, xhr => {xhr.timeout = 1000;})
-            .then(data => JSON.parse(data))
+        // return PerformWebrequest('POST', url, body, xhr => {xhr.timeout = 1000;})
+        //     .then(data => JSON.parse(data))
+        return browser.runtime.sendMessage({action: actionGetLogin, content: body, url: url})
             .then(resp => {
                 return Decrypt(resp.Message, cryptoKey, resp.IV);
             })
@@ -128,18 +129,20 @@ var contentWorker = {
 
     ObsCallback: function (list, obs, plgin) {
         for (var j = 0; j < list.length; j++) {
-            var newIframesX = list[j].addedNodes[0].getElementsByTagName("iframe");
-            var newFramesX = list[j].addedNodes[0].getElementsByTagName("frame");
-            var newIframes = [];
-            newIframes.push(...newIframesX);
-            newIframes.push(...newFramesX);
-
-            for (var y = 0; y < newIframes.length; y++) {
-                if (plgin.IsSameSource(newIframes[y].getAttribute("src"))) {
-                    newIframes[y].addEventListener("load", ev => {
-                        plgin.FindAndFillLoginFields(ev.target.contentDocument);
-                    });
-                }
+            if (list[j].addedNodes[0] !== undefined) {
+                var newIframesX = list[j].addedNodes[0].getElementsByTagName("iframe");
+                var newFramesX = list[j].addedNodes[0].getElementsByTagName("frame");
+                var newIframes = [];
+                newIframes.push(...newIframesX);
+                newIframes.push(...newFramesX);
+    
+                for (var y = 0; y < newIframes.length; y++) {
+                    if (plgin.IsSameSource(newIframes[y].getAttribute("src"))) {
+                        newIframes[y].addEventListener("load", ev => {
+                            plgin.FindAndFillLoginFields(ev.target.contentDocument);
+                        });
+                    }
+                }    
             }
             plgin.FindAndFillLoginFields(list[j].target);
         }
@@ -231,6 +234,8 @@ function starter() {
             }
         });
 }
+
+console.log("debug content");
 
 if (
     document.readyState === "complete" ||
