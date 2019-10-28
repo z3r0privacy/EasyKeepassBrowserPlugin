@@ -16,12 +16,12 @@ The background-script itself is not really interesting too. It is only used beca
 
 The content-script waits until the DOM is loaded and then searches for login-fields. This is done as follows:
 1. The script checks with the background-script if the connection to Keepass is working (meaning Keepass is running with the plugin, the database is unlocked and the pin has been entered correctly).
-  1. If not, the content-script registers with the background-script to receive a notification if the state changes. Upon a state-change, this algorithm is continued.
+   1. If not, the content-script registers with the background-script to receive a notification if the state changes. Upon a state-change, this algorithm is continued.
 2. The DOM is searched for password-fields (`<input type="password" />`) that are visible.
-  1. If none are found, the search is repeated but includes non visible input fields.
-    1. If still no fields are found, a `MutationObserver` is registered which notifies the script if the DOM changes. The changed parts are then again searched for login fields.
+   1. If none are found, the search is repeated but includes non visible input fields.
+      1. If still no fields are found, a `MutationObserver` is registered which notifies the script if the DOM changes. The changed parts are then again searched for login fields.
 3. For the password field, the according input field for the user-name or e-mail is searched.
-  1. If more than one element is found in the same form which allows text-input, the script assumes it is a registration form or something else and aborts.
+   1. If more than one element is found in the same form which allows text-input, the script assumes it is a registration form or something else and aborts.
 4. If the user/mail input and the password input fields are identified, the current url is sent to the plugin to receive a user/pass combination.
 5. If a login is found, the data is entered into the according fields.
 
@@ -74,11 +74,11 @@ The `message` string in the communicaion contains the encrypted JSON-string of t
 The AES-key itself is generated when the plugin is loaded for the first time and saved inside the root-container in the currently open Keepass database. Its name is `EasyBrowserAddonKey`. The addon does not save this key in plain text, but encrypted. It is therefore necessary that the user specifies a key or pin which is used to decrypt the stored AES-Key. The user-specified key is used to derive a AES-Key which then decrypts the AES-Key used for the communication. This is done as follows:
 
 1. First of all, some data needs to be known.
-  - EncryptedKey: This is the AES-Key needed for the communication, but encrypted. Stored as base64.
-  - IV: This is the initialization vector which was used to encrypt the EncryptedKey. Stored as base64.
-  - KeyHash: A SHA-265 hash of the decrypted AES-Key. This is used to check whether the decryption was correct. Stored as hex-string.
-  - Salt: Added to the pin/password of the user. This is required for the KBPDF2 function. Stored as base64.
-  - NumIterations: Used for the KBPDF2 function. Stored as number.
+   - EncryptedKey: This is the AES-Key needed for the communication, but encrypted. Stored  as base64.
+   - IV: This is the initialization vector which was used to encrypt the EncryptedKey.  Stored as base64.
+   - KeyHash: A SHA-265 hash of the decrypted AES-Key. This is used to check whether the  decryption was correct. Stored as hex-string.
+   - Salt: Added to the pin/password of the user. This is required for the KBPDF2 function.  Stored as base64.
+   - NumIterations: Used for the KBPDF2 function. Stored as number.
 2. The user inputs his key/pin. 
 3. Using the  `KBPDF2` function and the stored values for salt and number of iterations, a AES-Key is derived.
 4. Using the key derived in step 3, the encrypted AES-Key is decrypted.
