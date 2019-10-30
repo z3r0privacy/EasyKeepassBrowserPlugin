@@ -15,6 +15,12 @@ document.getElementById("enterSetupButton").onclick = () => enterSetup();
 document.getElementById("exitSetupButton").onclick = () => leaveSetup();
 document.getElementById("saveSetupButton").onclick = () => saveSetup();
 
+document.getElementById("passUnlock").onkeydown = e => {
+    if (e.keyCode === 13) {
+        unlockClicked();
+    }
+};
+
 
 DisplayCorrectSection();
 
@@ -53,6 +59,10 @@ function HandleStateChange(state) {
         b.classList.add("ok");
     } else {
         b.classList.add("normal");
+    }
+
+    if (state === stateLocked) {
+        document.getElementById("passUnlock").focus();
     }
 }
 
