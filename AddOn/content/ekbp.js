@@ -141,6 +141,7 @@ var contentWorker = {
                     });
                 }
             }
+            console.log(list[j].target);
             plgin.FindAndFillLoginFields(list[j].target);
         }
     },
@@ -155,25 +156,24 @@ var contentWorker = {
             pwd = this.SelectPwdField(pwds, false);
         }
 
-        if (pwd === null) {
-            if (this.observerStarted === false) {
-                this.observerStarted = true;
-                var conf = {
-                    attributeOldValue: false,
-                    attributes: false,
-                    characterData: false,
-                    characterDataOldValue: false,
-                    childList: true,
-                    subtree: true
-                };
-                var _this = this;
-                this.obs = new MutationObserver(function (list, obs) {
-                    _this.ObsCallback(list, obs, _this);
-                });
-                this.obs.observe(document.getRootNode(), conf);
-            }
-            return;
+        if (this.observerStarted === false) {
+            this.observerStarted = true;
+            var conf = {
+                attributeOldValue: false,
+                attributes: false,
+                characterData: false,
+                characterDataOldValue: false,
+                childList: true,
+                subtree: true
+            };
+            var _this = this;
+            this.obs = new MutationObserver(function (list, obs) {
+                _this.ObsCallback(list, obs, _this);
+            });
+            this.obs.observe(document.getRootNode(), conf);
         }
+        
+        if (pwd === null) return;
 
         var userField = this.GetUserField(pwd);
         this.GetLoginData(window.location.href)
@@ -182,34 +182,28 @@ var contentWorker = {
                     return;
                 }
                 if (this.observerStarted === true) {
-                    this.obs.disconnect();
+                    //this.obs.disconnect();
                 }
 
-                setNativeValue(pwd, data.Password);
-                if (userField !== undefined) {
-                    if (userField.hasAttribute("autocomplete")) {
-                        userField.removeAttribute("autocomplete");
-                    }
-                    setNativeValue(userField, data.Username);
+                var wait = 0;
+                if (checkReact()) {
+                    //wait = 5000;
                 }
+
+                setTimeout(() => {
+                    if (userField !== undefined) {
+                        if (userField.hasAttribute("autocomplete")) {
+                            userField.removeAttribute("autocomplete");
+                        }
+                        userField.value = data.Username;
+                        triggerReact(userField);
+                    }
+                    pwd.value = data.Password;
+                    triggerReact(pwd);
+                }, wait);
             });
     }
 };
-
-function setNativeValue(element, value) {
-    const { set: valueSetter } = Object.getOwnPropertyDescriptor(element, 'value') || {}
-    const prototype = Object.getPrototypeOf(element)
-    const { set: prototypeValueSetter } = Object.getOwnPropertyDescriptor(prototype, 'value') || {}
-
-    if (prototypeValueSetter && valueSetter !== prototypeValueSetter) {
-        prototypeValueSetter.call(element, value)
-    } else if (valueSetter) {
-        valueSetter.call(element, value)
-    } else {
-        throw new Error('The given element does not have a value setter')
-    }
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-}
 
 function stateChange(msg) {
     if (msg.action === undefined) return true;
@@ -223,13 +217,13 @@ function stateChange(msg) {
 
 function starter() {
     browser.runtime.sendMessage({ action: actionGetState })
-        .then(state => {
-            if (state === stateUnlockedOk) {
-                contentWorker.FindAndFillLoginFields(null);
-            } else {
-                browser.runtime.onMessage.addListener(stateChange);
-            }
-        });
+    .then(state => {
+        if (state === stateUnlockedOk) {
+            contentWorker.FindAndFillLoginFields(null);
+        } else {
+            browser.runtime.onMessage.addListener(stateChange);
+        }
+    });
 }
 
 if (
