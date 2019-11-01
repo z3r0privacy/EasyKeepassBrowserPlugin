@@ -180,30 +180,6 @@ namespace EasyBrowserPlugin
                     Password = e.Strings.ReadSafe(PwDefs.PasswordField)
                 }).ToArray()
             };
-
-
-            //PwEntry e = null;
-
-            //if (results.UCount > 1)
-            //{
-            //    e = results.Where(r => !string.IsNullOrEmpty(r.Strings.ReadSafe(PwDefs.UserNameField)) &&
-            //                            !string.IsNullOrEmpty(r.Strings.ReadSafe(PwDefs.PasswordField)))
-            //                .OrderByDescending(r => r.CreationTime).FirstOrDefault();
-            //}
-
-            //if (e == default)
-            //{
-            //    e = results.First();
-            //}
-
-            //e.Touch(false);
-
-            //return new ResponseData
-            //{
-            //    FoundData = true,
-            //    Username = e.Strings.ReadSafe(PwDefs.UserNameField),
-            //    Password = e.Strings.ReadSafe(PwDefs.PasswordField)
-            //};
         }
     }
 }
