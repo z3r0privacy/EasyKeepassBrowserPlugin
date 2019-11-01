@@ -143,6 +143,7 @@ var contentWorker = {
                     });
                 }
             }
+            console.log(list[j].target);
             plgin.FindAndFillLoginFields(list[j].target);
         }
     },
@@ -159,25 +160,24 @@ var contentWorker = {
 
         var userField = this.GetUserField(pwd);
 
-        if (pwd === null || userField === undefined) {
-            if (this.observerStarted === false) {
-                this.observerStarted = true;
-                var conf = {
-                    attributeOldValue: false,
-                    attributes: false,
-                    characterData: false,
-                    characterDataOldValue: false,
-                    childList: true,
-                    subtree: true
-                };
-                var _this = this;
-                this.obs = new MutationObserver(function (list, obs) {
-                    _this.ObsCallback(list, obs, _this);
-                });
-                this.obs.observe(document.getRootNode(), conf);
-            }
-            return;
+        if (this.observerStarted === false) {
+            this.observerStarted = true;
+            var conf = {
+                attributeOldValue: false,
+                attributes: false,
+                characterData: false,
+                characterDataOldValue: false,
+                childList: true,
+                subtree: true
+            };
+            var _this = this;
+            this.obs = new MutationObserver(function (list, obs) {
+                _this.ObsCallback(list, obs, _this);
+            });
+            this.obs.observe(document.getRootNode(), conf);
         }
+        
+        if (pwd === null || userField === undefined) return;
 
         this.GetLoginData(window.location.href)
             .then(data => {
@@ -185,33 +185,23 @@ var contentWorker = {
                     return;
                 }
                 if (this.observerStarted === true) {
-                    this.obs.disconnect();
+                    //this.obs.disconnect();
                 }
 
                 if (data.Entries.length === 1) {
-                    setNativeValue(pwd, data.Entries[0].Password);
-                    setNativeValue(userField, data.Entries[0].Username);
+                    if (userField.hasAttribute("autocomplete")) {
+                        userField.removeAttribute("autocomplete");
+                    }
+                    userField.value = data.Entries[0].Username;
+                    triggerReact(userField);
+                    pwd.value = data.Entries[0].Password;
+                    triggerReact(pwd);
                 } else {
                     DisplaySelectPwd(data, userField, pwd);
                 }
             });
     }
 };
-
-function setNativeValue(element, value) {
-    const { set: valueSetter } = Object.getOwnPropertyDescriptor(element, 'value') || {}
-    const prototype = Object.getPrototypeOf(element)
-    const { set: prototypeValueSetter } = Object.getOwnPropertyDescriptor(prototype, 'value') || {}
-
-    if (prototypeValueSetter && valueSetter !== prototypeValueSetter) {
-        prototypeValueSetter.call(element, value)
-    } else if (valueSetter) {
-        valueSetter.call(element, value)
-    } else {
-        throw new Error('The given element does not have a value setter')
-    }
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-}
 
 function stateChange(msg) {
     if (msg.action === undefined) return true;
@@ -225,13 +215,13 @@ function stateChange(msg) {
 
 function starter() {
     browser.runtime.sendMessage({ action: actionGetState })
-        .then(state => {
-            if (state === stateUnlockedOk) {
-                contentWorker.FindAndFillLoginFields(null);
-            } else {
-                browser.runtime.onMessage.addListener(stateChange);
-            }
-        });
+    .then(state => {
+        if (state === stateUnlockedOk) {
+            contentWorker.FindAndFillLoginFields(null);
+        } else {
+            browser.runtime.onMessage.addListener(stateChange);
+        }
+    });
 }
 
 console.log("debug");
