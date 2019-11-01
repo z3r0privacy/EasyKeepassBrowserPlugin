@@ -164,7 +164,7 @@ namespace EasyBrowserPlugin
             }
 
             var results = new PwObjectList<PwEntry>();
-            results.Add(tmpResults.Distinct().ToList());
+            results.Add(tmpResults.Distinct().OrderBy(e => e.Strings.ReadSafe(PwDefs.TitleField)).ToList());
 
             if (results.UCount == 0)
             {

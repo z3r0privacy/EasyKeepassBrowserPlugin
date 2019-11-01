@@ -109,17 +109,12 @@ function DisplaySelectPwd(data, userField, pwd) {
     const myFunc = (divImg, mouseEvent) => {
         mouseEvent.stopPropagation();
 
-        const oldMenu = document.getElementById("__pwdSelectionMenu");
+        const oldMenu = pwd.getRootNode().getElementById("__pwdSelectionMenu");
         if (oldMenu !== null) {
             oldMenu.parentNode.removeChild(oldMenu);
         }
 
         const mainDiv = document.createElement("div");
-
-        const rect = divImg.getClientRects()[0];
-        const expX = window.scrollX + rect.right - 150;
-        const expY = window.scrollY + rect.bottom + 20;
-
 
         const fillData = num => {
             setNativeValue(pwd, data.Entries[num].Password);
@@ -128,11 +123,11 @@ function DisplaySelectPwd(data, userField, pwd) {
         };
 
         mainDiv.setAttribute("id", "__pwdSelectionMenu");
-        mainDiv.setAttribute("style", "width:150px; border: 1px solid yellow; position: absolute; top:" + expY + "px; left:" + expX + "px; z-index:1000; background-color: white;");
+        mainDiv.setAttribute("style", "width: auto; top:0; left:0; border: 1px solid yellow; position: absolute; z-index:1000; background-color: white;");
 
         for (var i = 0; i < data.Entries.length; i++) {
             const eDiv = document.createElement("div");
-            eDiv.setAttribute("style", "border: 1px solid black; padding-left: 10px; padding-top:2px;padding-bottom:2px; cursor: pointer;");
+            eDiv.setAttribute("style", "border: 1px solid black; padding-left: 10px; padding-right: 10px; padding-top:2px;padding-bottom:2px; cursor: pointer;");
             const pE = document.createElement("p");
             pE.setAttribute("style", "font-weight:bold; margin-top:0;margin-bottom:0;");
             pE.innerText = data.Entries[i].EntryName;
@@ -146,7 +141,7 @@ function DisplaySelectPwd(data, userField, pwd) {
             mainDiv.appendChild(eDiv);
         }
 
-        document.onclick = e => {
+        pwd.getRootNode().documentElement.onclick = e => {
             const dRect = mainDiv.getClientRects()[0];
             if (e.clientX >= dRect.left
                 && e.clientX <= dRect.right
@@ -159,6 +154,12 @@ function DisplaySelectPwd(data, userField, pwd) {
         };
 
         pwd.getRootNode().documentElement.appendChild(mainDiv);
+
+        const rect = divImg.getClientRects()[0];
+        const actWidth = parseInt(window.getComputedStyle(mainDiv).width);
+        const expX = window.scrollX + rect.right - actWidth;
+        const expY = window.scrollY + rect.bottom + 20;
+        mainDiv.setAttribute("style", "width: auto; top:" + expY + "px; left:" + expX + "px; border: 1px solid yellow; position: absolute; z-index:1000; background-color: white;");
     };
 
     const style = window.getComputedStyle(pwd);
