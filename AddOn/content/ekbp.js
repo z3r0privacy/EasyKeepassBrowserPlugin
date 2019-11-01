@@ -143,7 +143,6 @@ var contentWorker = {
                     });
                 }
             }
-            console.log(list[j].target);
             plgin.FindAndFillLoginFields(list[j].target);
         }
     },
@@ -224,7 +223,6 @@ function starter() {
     });
 }
 
-console.log("debug");
 
 if (
     document.readyState === "complete" ||
