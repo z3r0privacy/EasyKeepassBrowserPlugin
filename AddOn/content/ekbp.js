@@ -34,6 +34,8 @@ var contentWorker = {
     },
 
     GetUserField: function (pwdField) {
+        if (pwdField === null) return undefined;
+
         var el = pwdField.parentElement;
         while (el !== null && el.tagName !== "FORM") {
             el = el.parentElement;
@@ -73,13 +75,13 @@ var contentWorker = {
         });
         const body = JSON.stringify(await Encrypt(params, cryptoKey));
 
-        return PerformWebrequest('POST', url, body, xhr => {xhr.timeout = 1000;})
+        return PerformWebrequest('POST', url, body, xhr => { xhr.timeout = 1000; })
             .then(data => JSON.parse(data))
             .then(resp => {
                 return Decrypt(resp.Message, cryptoKey, resp.IV);
             })
             .then(ans => JSON.parse(ans))
-            .catch(() => { return {"FoundData": false, "Username": "", "Password": "" };});
+            .catch(() => { return { "Entries": [] }; });
     },
 
     IsSameSource: function (url) {
@@ -155,7 +157,9 @@ var contentWorker = {
             pwd = this.SelectPwdField(pwds, false);
         }
 
-        if (pwd === null) {
+        var userField = this.GetUserField(pwd);
+
+        if (pwd === null || userField === undefined) {
             if (this.observerStarted === false) {
                 this.observerStarted = true;
                 var conf = {
@@ -175,22 +179,20 @@ var contentWorker = {
             return;
         }
 
-        var userField = this.GetUserField(pwd);
         this.GetLoginData(window.location.href)
             .then(data => {
-                if (data.FoundData === false) {
+                if (data.Entries.length === 0) {
                     return;
                 }
                 if (this.observerStarted === true) {
                     this.obs.disconnect();
                 }
 
-                setNativeValue(pwd, data.Password);
-                if (userField !== undefined) {
-                    if (userField.hasAttribute("autocomplete")) {
-                        userField.removeAttribute("autocomplete");
-                    }
-                    setNativeValue(userField, data.Username);
+                if (data.Entries.length === 1) {
+                    setNativeValue(pwd, data.Entries[0].Password);
+                    setNativeValue(userField, data.Entries[0].Username);
+                } else {
+                    DisplaySelectPwd(data, userField, pwd);
                 }
             });
     }
@@ -231,6 +233,8 @@ function starter() {
             }
         });
 }
+
+console.log("debug");
 
 if (
     document.readyState === "complete" ||

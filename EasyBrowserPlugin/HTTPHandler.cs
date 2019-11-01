@@ -125,7 +125,7 @@ namespace EasyBrowserPlugin
         {
             var notFound = new ResponseData
             {
-                FoundData = false
+                Entries = new ResponseEntry[0]
             };
 
             if (_pHost == null)
@@ -152,42 +152,58 @@ namespace EasyBrowserPlugin
             sp.SearchInTitles = true;
             sp.ExcludeExpired = true;
 
-            var results = new PwObjectList<PwEntry>();
-            _pHost.Database.RootGroup.SearchEntries(sp, results);
+            var tmpResults = new PwObjectList<PwEntry>();
+            _pHost.Database.RootGroup.SearchEntries(sp, tmpResults);
 
-            while (results.UCount == 0 && cleanedSite.CanStrip)
+            while (cleanedSite.CanStrip)
             {
+                var tmpRes = new PwObjectList<PwEntry>();
                 sp.SearchString = cleanedSite.Strip();
-                _pHost.Database.RootGroup.SearchEntries(sp, results);
+                _pHost.Database.RootGroup.SearchEntries(sp, tmpRes);
+                tmpResults.Add(tmpRes);
             }
+
+            var results = new PwObjectList<PwEntry>();
+            results.Add(tmpResults.Distinct().ToList());
 
             if (results.UCount == 0)
             {
                 return notFound;
             }
 
-            PwEntry e = null;
-
-            if (results.UCount > 1)
-            {
-                e = results.Where(r => !string.IsNullOrEmpty(r.Strings.ReadSafe(PwDefs.UserNameField)) &&
-                                        !string.IsNullOrEmpty(r.Strings.ReadSafe(PwDefs.PasswordField)))
-                            .OrderByDescending(r => r.CreationTime).FirstOrDefault();
-            }
-
-            if (e == default)
-            {
-                e = results.First();
-            }
-
-            e.Touch(false);
-
             return new ResponseData
             {
-                FoundData = true,
-                Username = e.Strings.ReadSafe(PwDefs.UserNameField),
-                Password = e.Strings.ReadSafe(PwDefs.PasswordField)
+                Entries = results.Select(e => new ResponseEntry
+                {
+                    EntryName = e.Strings.ReadSafe(PwDefs.TitleField),
+                    Username = e.Strings.ReadSafe(PwDefs.UserNameField),
+                    Password = e.Strings.ReadSafe(PwDefs.PasswordField)
+                }).ToArray()
             };
+
+
+            //PwEntry e = null;
+
+            //if (results.UCount > 1)
+            //{
+            //    e = results.Where(r => !string.IsNullOrEmpty(r.Strings.ReadSafe(PwDefs.UserNameField)) &&
+            //                            !string.IsNullOrEmpty(r.Strings.ReadSafe(PwDefs.PasswordField)))
+            //                .OrderByDescending(r => r.CreationTime).FirstOrDefault();
+            //}
+
+            //if (e == default)
+            //{
+            //    e = results.First();
+            //}
+
+            //e.Touch(false);
+
+            //return new ResponseData
+            //{
+            //    FoundData = true,
+            //    Username = e.Strings.ReadSafe(PwDefs.UserNameField),
+            //    Password = e.Strings.ReadSafe(PwDefs.PasswordField)
+            //};
         }
     }
 }

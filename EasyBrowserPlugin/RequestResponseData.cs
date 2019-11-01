@@ -13,7 +13,11 @@ namespace EasyBrowserPlugin
 
     public class ResponseData
     {
-        public bool FoundData { get; set; }
+        public ResponseEntry[] Entries { get; set; }
+    }
+    public class ResponseEntry
+    {
+        public string EntryName { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
     }

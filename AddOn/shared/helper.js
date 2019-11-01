@@ -104,3 +104,74 @@ function PerformWebrequest(method, url, body, modifyXhr) {
         }
     });
 }
+
+function DisplaySelectPwd(data, userField, pwd) {
+    const myFunc = (divImg, mouseEvent) => {
+        mouseEvent.stopPropagation();
+
+        const oldMenu = document.getElementById("__pwdSelectionMenu");
+        if (oldMenu !== null) {
+            oldMenu.parentNode.removeChild(oldMenu);
+        }
+
+        const mainDiv = document.createElement("div");
+
+        const rect = divImg.getClientRects()[0];
+        const expX = window.scrollX + rect.right - 150;
+        const expY = window.scrollY + rect.bottom + 20;
+
+
+        const fillData = num => {
+            setNativeValue(pwd, data.Entries[num].Password);
+            setNativeValue(userField, data.Entries[num].Username);
+            mainDiv.parentNode.removeChild(mainDiv);
+        };
+
+        mainDiv.setAttribute("id", "__pwdSelectionMenu");
+        mainDiv.setAttribute("style", "width:150px; border: 1px solid yellow; position: absolute; top:" + expY + "px; left:" + expX + "px; z-index:1000; background-color: white;");
+
+        for (var i = 0; i < data.Entries.length; i++) {
+            const eDiv = document.createElement("div");
+            eDiv.setAttribute("style", "border: 1px solid black; padding-left: 10px; padding-top:2px;padding-bottom:2px; cursor: pointer;");
+            const pE = document.createElement("p");
+            pE.setAttribute("style", "font-weight:bold; margin-top:0;margin-bottom:0;");
+            pE.innerText = data.Entries[i].EntryName;
+            eDiv.appendChild(pE);
+            const pU = document.createElement("p");
+            pU.setAttribute("style", "font-style: italic; margin-top:0;margin-bottom:0;");
+            pU.innerText = data.Entries[i].Username;
+            eDiv.appendChild(pU);
+            const thisNum = i;
+            eDiv.onclick = () => fillData(thisNum);
+            mainDiv.appendChild(eDiv);
+        }
+
+        document.onclick = e => {
+            const dRect = mainDiv.getClientRects()[0];
+            if (e.clientX >= dRect.left
+                && e.clientX <= dRect.right
+                && e.clientY >= dRect.top
+                && e.clientY <= dRect.bottom) {
+                return;
+            }
+
+            mainDiv.parentNode.removeChild(mainDiv);
+        };
+
+        pwd.getRootNode().documentElement.appendChild(mainDiv);
+    };
+
+    const style = window.getComputedStyle(pwd);
+    const pn = pwd.parentNode;
+    const div = document.createElement("div");
+    div.setAttribute("style", "position:relative;");
+    pn.insertBefore(div, pwd);
+    div.appendChild(pwd);
+
+    const topVal = (parseInt(style.height, 10) - 20) / 2;
+    const divImg = document.createElement("div");
+    divImg.setAttribute("style", "width:20px; height:20px; z-index:500; background: url(" + browser.runtime.getURL("res/icon_open.svg") + ") no-repeat; background-size: 20px 20px; content: ' '; position:absolute;right:5px;top: " + topVal + "px; cursor: pointer;");
+    divImg.setAttribute("id", "__pwdSelectIcon");
+    divImg.onclick = e => myFunc(divImg, e);
+    div.appendChild(divImg);
+}
