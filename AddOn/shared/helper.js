@@ -181,6 +181,7 @@ function DisplaySelectPwd(data, userField, pwd) {
     divImg.setAttribute("id", "__pwdSelectIcon");
     divImg.onclick = e => myFunc(divImg, e);
     div.appendChild(divImg);
+}
 
 function checkReact() {
     const r1 = new RegExp("<[^>]+data-react");
@@ -206,6 +207,7 @@ function checkReact() {
 // thanks to https://github.com/vitalyq
 // src: https://github.com/vitalyq/react-trigger-change/blob/9d2fe4af0dd943bae2848ecff79e3df05add5d0c/lib/change.js#L97-L146
 function triggerReact(node) {
+    if (checkReact() === false) return;
      // React 16
     // Cache artificial value property descriptor.
     // Property doesn't exist in React <16, descriptor is undefined.
