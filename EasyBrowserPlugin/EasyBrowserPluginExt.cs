@@ -20,13 +20,16 @@ namespace EasyBrowserPlugin
 
         private const string SAVED_KEY_NAME = "EasyBrowserAddonKey";
 
+        private Configuration _config;
+
         internal byte[] CryptoKey { get; private set; }
         public override bool Initialize(IPluginHost host)
         {
             //Debugger.Launch();
             _pHost = host;
             host.MainWindow.FileOpened += CheckPluginKeyState;
-            _handler = new HTTPHandler(host, this);
+            _config = new Configuration(host);
+            _handler = new HTTPHandler(host, this, _config);
             _handler.Start();
             return true;
         }
@@ -56,20 +59,26 @@ namespace EasyBrowserPlugin
         {
             if (t == PluginMenuType.Main)
             {
-                var mi = new ToolStripMenuItem()
-                {
-                    Text = "Setup EasyBrowserAddon"
-                };
-                mi.Click += OpenAddonSetupWindow;
-
-#if __DEBUG
                 var main = new ToolStripMenuItem()
                 {
                     Text = "EasyBroswerAddon"
                 };
 
+                var mi = new ToolStripMenuItem()
+                {
+                    Text = "Setup EasyBrowserAddon"
+                };
+                mi.Click += OpenAddonSetupWindow;
                 main.DropDownItems.Add(mi);
 
+                var configUI = new ToolStripMenuItem()
+                {
+                    Text = "Options"
+                };
+                configUI.Click += ConfigUI_Click;
+                main.DropDownItems.Add(configUI);
+
+#if __DEBUG
                 var dl = new ToolStripMenuItem()
                 {
                     Text = "Launch Debugger"
@@ -77,13 +86,17 @@ namespace EasyBrowserPlugin
                 dl.Click += (s, e) => Debugger.Launch();
 
                 main.DropDownItems.Add(dl);
+#endif
 
                 return main;
-#else
-                return mi;
-#endif
             }
             return null;
+        }
+
+        private void ConfigUI_Click(object sender, EventArgs e)
+        {
+            var wnd = new ConfigDialog();
+            wnd.ShowDialog();
         }
 
         private void OpenAddonSetupWindow(object sender, EventArgs e)

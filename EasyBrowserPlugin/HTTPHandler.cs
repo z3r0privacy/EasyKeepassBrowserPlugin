@@ -18,12 +18,14 @@ namespace EasyBrowserPlugin
         private IPluginHost _pHost;
         private HttpListener _server;
         private EasyBrowserPluginExt _plugin;
+        private Configuration _config;
         private static readonly object workerLock = new object();
 
-        public HTTPHandler(IPluginHost pHost, EasyBrowserPluginExt plugin)
+        public HTTPHandler(IPluginHost pHost, EasyBrowserPluginExt plugin, Configuration config)
         {
             _plugin = plugin;
             _pHost = pHost;
+            _config = config;
             _server = new HttpListener();
             _server.Prefixes.Add("http://localhost:34567/");
             _server.Prefixes.Add("http://localhost:34567/connectivity/");
@@ -164,7 +166,7 @@ namespace EasyBrowserPlugin
             }
 
             var results = new PwObjectList<PwEntry>();
-            results.Add(tmpResults.Distinct().OrderBy(e => e.Strings.ReadSafe(PwDefs.TitleField)).ToList());
+            results.Add(tmpResults.Distinct().Where(e => _config.EnabledGroups.Contains(e.ParentGroup.Uuid)).OrderBy(e => e.Strings.ReadSafe(PwDefs.TitleField)).ToList());
 
             if (results.UCount == 0)
             {
