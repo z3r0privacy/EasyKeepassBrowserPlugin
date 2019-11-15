@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "EasyKeepassBrowserPlugin",
-    "version": "0.2",
+    "version": "0.3",
     "description": "A simple Plugin trying to automatically fill in your passwords",
     "author": "Michael Roth",
     "icons": {
@@ -30,7 +30,7 @@
         }
     },
     "web_accessible_resources": [
-        
+        "res/icon_opened.svg"
     ],
     "background": {
         "scripts": ["shared/const.js", "shared/helper.js", "shared/base64js.min.js", "shared/security.js", "bg/background.js"]
