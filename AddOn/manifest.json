@@ -34,5 +34,13 @@
     ],
     "background": {
         "scripts": ["shared/const.js", "shared/helper.js", "shared/base64js.min.js", "shared/security.js", "bg/background.js"]
+    },
+
+    "commands": {
+        "_execute_browser_action" : {
+            "suggested_key": {
+                "default": "Alt+Shift+K"
+            }
+        }
     }
 }
