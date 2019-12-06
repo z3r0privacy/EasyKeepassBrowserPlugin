@@ -41,7 +41,7 @@ var contentWorker = {
             el = el.parentElement;
         }
         if (el === null) {
-            return undefined;
+            return TryGetUserFieldWithoutFormTag(pwdField);
         }
         var userFields = [];
         var inputFields = el.getElementsByTagName("input");

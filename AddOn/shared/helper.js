@@ -28,8 +28,17 @@ function IsNotPartOfRegisterForm(el, onlyVisibleInputs) {
     }
 
     var inputFields = form.getElementsByTagName("input");
+    
+    const res = GetFormRelevantFields(inputFields);
+
+    return res.pwFields === 1 && res.inFields < 2;
+}
+
+function GetFormRelevantFields(inputFields) {
     var pwFields = 0;
     var inFields = 0;
+    var txtFieldsArr = [];
+    var pwFieldsArr = [];
 
     for (var i = 0; i < inputFields.length; i++) {
         if (IsFilterInputType(inputFields[i], false)) {
@@ -40,18 +49,38 @@ function IsNotPartOfRegisterForm(el, onlyVisibleInputs) {
         }
         if (inputFields[i].type.toLowerCase() === "password") {
             pwFields++;
+            pwFieldsArr.push(inputFields[i]);
         } else {
             inFields++;
+            txtFieldsArr.push(inputFields[i]);
         }
     }
 
-    return pwFields === 1 && inFields < 2;
+    return {pwFields: pwFields, inFields: inFields, pwFieldsArr: pwFieldsArr, txtFieldsArr: txtFieldsArr};
 }
 
-function IsFilterInputType(el, includePw) {
+function TryGetUserFieldWithoutFormTag(pwdField) {
+    var parent = pwdField.parentElement;
+    var numInputs = parent.getElementsByTagName("input").length;
+    while (parent !== null && parent.getElementsByTagName("input").length <= numInputs) {
+        parent = parent.parentElement;
+    }
+    if (parent === null) {
+        return undefined;
+    }
+
+    const allInputs = parent.getElementsByTagName("input");
+    const res = GetFormRelevantFields(allInputs);
+    if (res.pwFields === 1 && res.inFields === 1) {
+        return res.txtFieldsArr[0];
+    }
+    return undefined;
+}
+
+function IsFilterInputType(el, alsoFilterPW) {
     var t = el.type.toLowerCase();
 
-    if (includePw === true && t === "password") return true;
+    if (alsoFilterPW === true && t === "password") return true;
     
     return (   t === "button"
             || t === "checkbox"
