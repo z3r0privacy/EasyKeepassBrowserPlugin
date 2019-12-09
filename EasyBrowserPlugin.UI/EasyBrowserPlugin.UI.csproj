@@ -100,5 +100,11 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SharedTypes\SharedTypes.csproj">
+      <Project>{13b96c80-36b6-4a08-b12f-70238737f4bc}</Project>
+      <Name>SharedTypes</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

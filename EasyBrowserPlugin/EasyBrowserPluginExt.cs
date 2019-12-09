@@ -1,4 +1,5 @@
-﻿using EasyBrowserPlugin.UI;
+﻿using EasyBrowserPlugin.Shared;
+using EasyBrowserPlugin.UI;
 using KeePass.Forms;
 using KeePass.Plugins;
 using KeePassLib;
@@ -95,8 +96,19 @@ namespace EasyBrowserPlugin
 
         private void ConfigUI_Click(object sender, EventArgs e)
         {
-            var wnd = new ConfigDialog();
-            wnd.ShowDialog();
+            var viewModel = new ConfigDialogViewModel(
+                Group.CreateTree(_config, _pHost.Database.RootGroup),
+                _config.Mode);
+
+            var wnd = new ConfigDialog(viewModel);
+            var res = wnd.ShowDialog();
+            if (res.HasValue && res.Value)
+            {
+                _config.Mode = viewModel.CurrentMode;
+                _config.SelectedGroups.Clear();
+                _config.SelectedGroups.AddRange(viewModel.Groups[0].GetSelectedUuids());
+                _config.Save();
+            }
         }
 
         private void OpenAddonSetupWindow(object sender, EventArgs e)

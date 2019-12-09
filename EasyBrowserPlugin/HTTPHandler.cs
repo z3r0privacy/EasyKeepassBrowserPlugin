@@ -1,4 +1,5 @@
-﻿using KeePass.Plugins;
+﻿using EasyBrowserPlugin.Shared;
+using KeePass.Plugins;
 using KeePassLib;
 using KeePassLib.Collections;
 using Newtonsoft.Json;
@@ -145,6 +146,12 @@ namespace EasyBrowserPlugin
                 return notFound;
             }
 
+
+            if (_config.Mode == Configuration.SelectionMode.None)
+            {
+                return notFound;
+            }
+
             var cleanedSite = new UrlStripper(url);
 
 
@@ -166,7 +173,23 @@ namespace EasyBrowserPlugin
             }
 
             var results = new PwObjectList<PwEntry>();
-            results.Add(tmpResults.Distinct().Where(e => _config.EnabledGroups.Contains(e.ParentGroup.Uuid)).OrderBy(e => e.Strings.ReadSafe(PwDefs.TitleField)).ToList());
+            switch(_config.Mode)
+            {
+                case Configuration.SelectionMode.AllExcept:
+                    results.Add(tmpResults.Distinct()
+                        .Where(e => !_config.SelectedGroups.Contains(e.ParentGroup.Uuid))
+                        .OrderBy(e => e.Strings.ReadSafe(PwDefs.TitleField)).ToList());
+                    break;
+                case Configuration.SelectionMode.Only:
+                    results.Add(tmpResults.Distinct()
+                        .Where(e => _config.SelectedGroups.Contains(e.ParentGroup.Uuid))
+                        .OrderBy(e => e.Strings.ReadSafe(PwDefs.TitleField)).ToList());
+                    break;
+                default:
+                    results.Add(tmpResults.Distinct()
+                        .OrderBy(e => e.Strings.ReadSafe(PwDefs.TitleField)).ToList());
+                    break;
+            }
 
             if (results.UCount == 0)
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EasyBrowserPlugin.Shared;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,6 +26,30 @@ namespace EasyBrowserPlugin.UI
         {
             InitializeComponent();
             DataContext = vm;
+            switch(vm.CurrentMode)
+            {
+                case Configuration.SelectionMode.All:
+                    modeAll.IsChecked = true;
+                    SetTreeViewEnabledState(false);
+                    break;
+                case Configuration.SelectionMode.AllExcept:
+                    SetTreeViewEnabledState(true);
+                    modeBut.IsChecked = true;
+                    break;
+                case Configuration.SelectionMode.Only:
+                    SetTreeViewEnabledState(true);
+                    modeOnly.IsChecked = true;
+                    break;
+                case Configuration.SelectionMode.None:
+                    SetTreeViewEnabledState(false);
+                    modeNone.IsChecked = true;
+                    break;
+            }
+        }
+
+        private void SetTreeViewEnabledState(bool isEnabled)
+        {
+            TreeView.IsEnabled = isEnabled;
         }
 
         private void mode_Click(object sender, RoutedEventArgs e)
@@ -33,22 +58,60 @@ namespace EasyBrowserPlugin.UI
             switch(radio.Name)
             {
                 case "modeAll":
-                    TreeView.IsEnabled = false;
-                    (DataContext as ConfigDialogViewModel).CurrentMode = 0;
+                    SetTreeViewEnabledState(false);
+                    (DataContext as ConfigDialogViewModel).CurrentMode = Configuration.SelectionMode.All;
                     break;
                 case "modeBut":
-                    TreeView.IsEnabled = true;
-                    (DataContext as ConfigDialogViewModel).CurrentMode = 1;
+                    SetTreeViewEnabledState(true);
+                    (DataContext as ConfigDialogViewModel).CurrentMode = Configuration.SelectionMode.AllExcept;
                     break;
                 case "modeOnly":
-                    TreeView.IsEnabled = true;
-                    (DataContext as ConfigDialogViewModel).CurrentMode = 2;
+                    SetTreeViewEnabledState(true);
+                    (DataContext as ConfigDialogViewModel).CurrentMode = Configuration.SelectionMode.Only;
                     break;
                 case "modeNone":
-                    TreeView.IsEnabled = false;
-                    (DataContext as ConfigDialogViewModel).CurrentMode = 3;
+                    SetTreeViewEnabledState(false);
+                    (DataContext as ConfigDialogViewModel).CurrentMode = Configuration.SelectionMode.None;
                     break;
             }
+        }
+
+        private void CheckedChanged(Group g, bool isChecked)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                g.SetSubGroupsChecked(isChecked);
+            }
+        }
+
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            CheckedChanged((sender as CheckBox).DataContext as Group, true);            
+        }
+
+        private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            CheckedChanged((sender as CheckBox).DataContext as Group, false);
+        }
+
+        private void CloseWithResult(bool dialogResult)
+        {
+            try
+            {
+                DialogResult = dialogResult;
+            }
+            catch (Exception) { }
+            Close();
+        }
+
+        private void btnDialogOk_Click(object sender, RoutedEventArgs e)
+        {
+            CloseWithResult(true);
+        }
+
+        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            CloseWithResult(false);
         }
     }
 }

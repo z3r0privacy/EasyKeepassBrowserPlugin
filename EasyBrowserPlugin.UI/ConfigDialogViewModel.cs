@@ -1,4 +1,5 @@
-﻿using KeePassLib;
+﻿using EasyBrowserPlugin.Shared;
+using KeePassLib;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,14 +9,6 @@ using System.Threading.Tasks;
 
 namespace EasyBrowserPlugin.UI
 {
-    public class Group
-    {
-        public PwUuid UUID { get; set; }
-        public string Name { get; set; }
-        public ObservableCollection<Group> SubGroups { get; set; }
-        public bool Selected { get; set; }
-    }
-
     public class ConfigDialogViewModel
     {
         public string AllGroups { get; set; } = "All groups";
@@ -26,12 +19,12 @@ namespace EasyBrowserPlugin.UI
         public string BtnOkText { get; set; } = "OK";
         public string BtnCancelText { get; set; } = "Cancel";
         public string HelpText { get; set; } = "Define which groups are searched for passwords";
-        public List<Group> Groups { get; set; }
-        public int CurrentMode { get; set; } = 0;
+        public ObservableCollection<Group> Groups { get; set; }
+        public Configuration.SelectionMode CurrentMode { get; set; } = 0;
 
         public ConfigDialogViewModel()
         {
-            Groups = new List<Group>();
+            Groups = new ObservableCollection<Group>();
             Groups.Add(new Group
             {
                 Name = "Root",
@@ -41,6 +34,13 @@ namespace EasyBrowserPlugin.UI
                     new Group{Name = "sub2"}
                 }
             });
+        }
+
+        public ConfigDialogViewModel(Group mainGroup, Configuration.SelectionMode mode)
+        {
+            Groups = new ObservableCollection<Group>();
+            Groups.Add(mainGroup);
+            CurrentMode = mode;
         }
     }
 }
